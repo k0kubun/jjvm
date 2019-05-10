@@ -1,13 +1,13 @@
 package com.github.k0kubun.jjvm;
 
+import com.github.k0kubun.jjvm.bytecode.ClassFile;
 import com.github.k0kubun.jjvm.bytecode.ClassParser;
 
-public class Main {
-    public static void main(String[] args) {
-        parseClassFile("test/Hello.class");
-    }
+import java.io.IOException;
 
-    private static void parseClassFile(String filename) {
-        new ClassParser().parseFile(filename);
+public class Main {
+    public static void main(String[] args) throws IOException {
+        ClassFile classFile = new ClassParser().parseClassFile("test/Hello.class");
+        System.out.println(classFile.disassemble());
     }
 }
