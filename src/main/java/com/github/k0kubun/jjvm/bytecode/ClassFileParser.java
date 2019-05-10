@@ -23,8 +23,8 @@ ClassFile {
     u2             attributes_count;
     attribute_info attributes[attributes_count];
 } */
-public class ClassParser {
-    public ClassFile parseClassFile(String filename) throws IOException {
+public class ClassFileParser {
+    public ClassFile parse(String filename) throws IOException {
         DataInputStream stream = new DataInputStream(new FileInputStream(filename));
 
         Integer magic = stream.readInt();
