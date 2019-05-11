@@ -1,17 +1,18 @@
 package com.github.k0kubun.jjvm.bytecode;
 
 public class ClassFile {
-    private int magic;
-    private int minorVersion;
-    private int majorVersion;
-    private ConstantPoolInfo[] constantPool;
-    private int accessFlags;
-    private int thisClass;
-    private int superClass;
-    private int[] interfaces;
+    private final int magic;
+    private final int minorVersion;
+    private final int majorVersion;
+    private final ConstantPoolInfo[] constantPool;
+    private final int accessFlags;
+    private final int thisClass;
+    private final int superClass;
+    private final int[] interfaces;
+    private final FieldInfo[] fields;
 
     public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool,
-                     int accessFlags, int thisClass, int superClass, int[] interfaces) {
+                     int accessFlags, int thisClass, int superClass, int[] interfaces, FieldInfo[] fields) {
         this.magic = magic;
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
@@ -20,6 +21,7 @@ public class ClassFile {
         this.thisClass = thisClass;
         this.superClass = superClass;
         this.interfaces = interfaces;
+        this.fields = fields;
     }
 
     public String disassemble() {

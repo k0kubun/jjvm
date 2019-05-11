@@ -37,6 +37,8 @@ public class ClassFileParser {
         int superClass = stream.readUnsignedShort();
         int interfacesCount = stream.readUnsignedShort();
         int[] interfaces = readUnsignedShorts(stream, interfacesCount);
+        int fieldsCount = stream.readUnsignedShort();
+        FieldInfo[] fields = parseFields(stream, fieldsCount);
 
         return new ClassFile(
                 magic,
@@ -46,7 +48,8 @@ public class ClassFileParser {
                 accessFlags,
                 thisClass,
                 superClass,
-                interfaces
+                interfaces,
+                fields
         );
     }
 
@@ -162,6 +165,41 @@ public class ClassFileParser {
             constantPool[i] = info;
         }
         return constantPool;
+    }
+
+    // field_info {
+    //     u2             access_flags;
+    //     u2             name_index;
+    //     u2             descriptor_index;
+    //     u2             attributes_count;
+    //     attribute_info attributes[attributes_count];
+    // }
+    private FieldInfo[] parseFields(DataInputStream stream, int fieldsCount) throws IOException {
+        FieldInfo[] fields = new FieldInfo[fieldsCount];
+        for (int i = 0; i < fieldsCount; i++) {
+            int accessFlags = stream.readUnsignedShort();
+            int nameIndex = stream.readUnsignedShort();
+            int descriptorIndex = stream.readUnsignedShort();
+            int attributesCount = stream.readUnsignedShort();
+
+            AttributeInfo[] attributes = new AttributeInfo[attributesCount];
+            for (int j = 0; j < attributesCount; j++) {
+                int attributeNameIndex = stream.readUnsignedShort();
+                int attributeLength = stream.readInt();
+                attributes[j] = new AttributeInfo(attributeNameIndex, readUnsignedBytes(stream, attributeLength));
+            }
+
+            fields[i] = new FieldInfo(accessFlags, nameIndex, descriptorIndex, attributes);
+        }
+        return fields;
+    }
+
+    private int[] readUnsignedBytes(DataInputStream stream, int length) throws IOException {
+        int[] bytes = new int[length];
+        for (int i = 0; i < length; i++) {
+            bytes[i] = stream.readUnsignedByte();
+        }
+        return bytes;
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {
