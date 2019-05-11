@@ -10,13 +10,7 @@ public class MethodInfo {
     private final AttributeInfo[] attributes;
 
     public MethodInfo(int accessFlags, String name, String descriptor, AttributeInfo[] attributes) {
-        List<AccessFlag> flags = new ArrayList<>();
-        for (AccessFlag flag : AccessFlag.values()) {
-            if ((flag.getValue() & accessFlags) != 0) {
-                flags.add(flag);
-            }
-        }
-        this.accessFlags = flags;
+        this.accessFlags = AccessFlag.fromInt(accessFlags);
         this.name = name;
         this.descriptor = descriptor;
         this.attributes = attributes;
@@ -65,6 +59,16 @@ public class MethodInfo {
         public String getName() {
             String suffix = toString().substring(4); // trim ACC_
             return suffix.toLowerCase();
+        }
+
+        public static List<AccessFlag> fromInt(int accessFlags) {
+            List<AccessFlag> list = new ArrayList<>();
+            for (AccessFlag flag : AccessFlag.values()) {
+                if ((flag.getValue() & accessFlags) != 0) {
+                    list.add(flag);
+                }
+            }
+            return list;
         }
     }
 }
