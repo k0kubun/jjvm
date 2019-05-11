@@ -147,7 +147,7 @@ public class ClassFileParser {
                 //     u2 bootstrap_method_attr_index;
                 //     u2 name_and_type_index;
                 // }
-                info = new ConstantPoolInfo.MethodHandle(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantPoolInfo.InvokeDynamic(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else {
                 throw new UnsupportedOperationException(String.format("Unhandled ConstantType (tag:%d)", tag));
             }
