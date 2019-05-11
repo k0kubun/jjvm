@@ -31,13 +31,22 @@ public class ClassFileParser {
         int minorVersion = stream.readUnsignedShort();
         int majorVersion = stream.readUnsignedShort();
         int constantPoolCount = stream.readUnsignedShort();
-        ConstantPoolInfo[] constantPool = parseConstantPool(stream, constantPoolCount);
+        ConstantPoolInfo[] constantPool = parseConstantPool(stream, constantPoolCount - 1);
+        int accessFlags = stream.readUnsignedShort();
+        int thisClass = stream.readUnsignedShort();
+        int superClass = stream.readUnsignedShort();
+        int interfacesCount = stream.readUnsignedShort();
+        int[] interfaces = readUnsignedShorts(stream, interfacesCount);
 
         return new ClassFile(
                 magic,
                 minorVersion,
                 majorVersion,
-                constantPool
+                constantPool,
+                accessFlags,
+                thisClass,
+                superClass,
+                interfaces
         );
     }
 
@@ -46,7 +55,6 @@ public class ClassFileParser {
     //     u1 info[];
     // }
     private ConstantPoolInfo[] parseConstantPool(DataInputStream stream, int constantPoolCount) throws IOException {
-        constantPoolCount--; // index=0 means "no data", and a pool has `constantPoolCount - 1` elements.
         ConstantPoolInfo[] constantPool = new ConstantPoolInfo[constantPoolCount];
         for (int i = 0; i < constantPoolCount; i++) {
             int tag = stream.readUnsignedByte();
@@ -154,5 +162,13 @@ public class ClassFileParser {
             constantPool[i] = info;
         }
         return constantPool;
+    }
+
+    private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {
+        int[] shorts = new int[length];
+        for (int i = 0; i < length; i++) {
+            shorts[i] = stream.readUnsignedShort();
+        }
+        return shorts;
     }
 }

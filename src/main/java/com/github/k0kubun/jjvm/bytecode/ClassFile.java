@@ -5,12 +5,21 @@ public class ClassFile {
     private int minorVersion;
     private int majorVersion;
     private ConstantPoolInfo[] constantPool;
+    private int accessFlags;
+    private int thisClass;
+    private int superClass;
+    private int[] interfaces;
 
-    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool) {
+    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool,
+                     int accessFlags, int thisClass, int superClass, int[] interfaces) {
         this.magic = magic;
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
         this.constantPool = constantPool;
+        this.accessFlags = accessFlags;
+        this.thisClass = thisClass;
+        this.superClass = superClass;
+        this.interfaces = interfaces;
     }
 
     public String disassemble() {
