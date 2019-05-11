@@ -1,9 +1,11 @@
 package com.github.k0kubun.jjvm.bytecode;
 
-public class ConstantPoolInfo {
+import java.nio.charset.StandardCharsets;
+
+public class ConstantInfo {
     private final ConstantType type;
 
-    public ConstantPoolInfo(ConstantType type) {
+    public ConstantInfo(ConstantType type) {
         this.type = type;
     }
 
@@ -11,16 +13,20 @@ public class ConstantPoolInfo {
         return type;
     }
 
-    public static class Class extends ConstantPoolInfo {
+    public static class Class extends ConstantInfo {
         private final int descriptorIndex;
 
         public Class(int descriptorIndex) {
             super(ConstantType.Class);
             this.descriptorIndex = descriptorIndex;
         }
+
+        public int getDescriptorIndex() {
+            return this.descriptorIndex;
+        }
     }
 
-    public static class Fieldref extends ConstantPoolInfo {
+    public static class Fieldref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
@@ -31,7 +37,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Methodref extends ConstantPoolInfo {
+    public static class Methodref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
@@ -42,7 +48,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class InterfaceMethodref extends ConstantPoolInfo {
+    public static class InterfaceMethodref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
@@ -53,7 +59,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class String extends ConstantPoolInfo {
+    public static class String extends ConstantInfo {
         private final int stringIndex;
 
         public String(int stringIndex) {
@@ -62,7 +68,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Integer extends ConstantPoolInfo {
+    public static class Integer extends ConstantInfo {
         private final int bytes;
 
         public Integer(int bytes) {
@@ -71,7 +77,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Float extends ConstantPoolInfo {
+    public static class Float extends ConstantInfo {
         private final int bytes;
 
         public Float(int bytes) {
@@ -80,7 +86,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Long extends ConstantPoolInfo {
+    public static class Long extends ConstantInfo {
         private final int highBytes;
         private final int lowBytes;
 
@@ -91,7 +97,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Double extends ConstantPoolInfo {
+    public static class Double extends ConstantInfo {
         private final int highBytes;
         private final int lowBytes;
 
@@ -102,7 +108,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class NameAndType extends ConstantPoolInfo {
+    public static class NameAndType extends ConstantInfo {
         private final int nameIndex;
         private final int descriptorIndex;
 
@@ -113,16 +119,20 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class Utf8 extends ConstantPoolInfo {
+    public static class Utf8 extends ConstantInfo {
         private final byte[] bytes;
 
         public Utf8(byte[] bytes) {
             super(ConstantType.Utf8);
             this.bytes = bytes;
         }
+
+        public java.lang.String getString() {
+            return new java.lang.String(bytes, StandardCharsets.UTF_8);
+        }
     }
 
-    public static class MethodHandle extends ConstantPoolInfo {
+    public static class MethodHandle extends ConstantInfo {
         private final int referenceKind;
         private final int referenceIndex;
 
@@ -133,7 +143,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class MethodType extends ConstantPoolInfo {
+    public static class MethodType extends ConstantInfo {
         private final int descriptorIndex;
 
         public MethodType(int descriptorIndex) {
@@ -142,7 +152,7 @@ public class ConstantPoolInfo {
         }
     }
 
-    public static class InvokeDynamic extends ConstantPoolInfo {
+    public static class InvokeDynamic extends ConstantInfo {
         private final int bootstrapMethodAttrIndex;
         private final int nameAndTypeIndex;
 

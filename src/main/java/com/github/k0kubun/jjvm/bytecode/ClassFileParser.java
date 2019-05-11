@@ -31,7 +31,7 @@ public class ClassFileParser {
         int minorVersion = stream.readUnsignedShort();
         int majorVersion = stream.readUnsignedShort();
         int constantPoolCount = stream.readUnsignedShort();
-        ConstantPoolInfo[] constantPool = parseConstantPool(stream, constantPoolCount - 1);
+        ConstantInfo[] constantPool = parseConstantPool(stream, constantPoolCount - 1);
         int accessFlags = stream.readUnsignedShort();
         int thisClass = stream.readUnsignedShort();
         int superClass = stream.readUnsignedShort();
@@ -63,79 +63,79 @@ public class ClassFileParser {
     //     u1 tag;
     //     u1 info[];
     // }
-    private ConstantPoolInfo[] parseConstantPool(DataInputStream stream, int constantPoolCount) throws IOException {
-        ConstantPoolInfo[] constantPool = new ConstantPoolInfo[constantPoolCount];
+    private ConstantInfo[] parseConstantPool(DataInputStream stream, int constantPoolCount) throws IOException {
+        ConstantInfo[] constantPool = new ConstantInfo[constantPoolCount];
         for (int i = 0; i < constantPoolCount; i++) {
             int tag = stream.readUnsignedByte();
             ConstantType type = ConstantType.fromTag(tag);
 
-            ConstantPoolInfo info;
+            ConstantInfo info;
             if (type == ConstantType.Class) {
                 // CONSTANT_Class_info {
                 //     u1 tag;
                 //     u2 name_index;
                 // }
-                info = new ConstantPoolInfo.Class(stream.readUnsignedShort());
+                info = new ConstantInfo.Class(stream.readUnsignedShort());
             } else if (type == ConstantType.Fieldref) {
                 // CONSTANT_Fieldref_info {
                 //     u1 tag;
                 //     u2 class_index;
                 //     u2 name_and_type_index;
                 // }
-                info = new ConstantPoolInfo.Fieldref(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantInfo.Fieldref(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else if (type == ConstantType.Methodref) {
                 // CONSTANT_Methodref_info {
                 //     u1 tag;
                 //     u2 class_index;
                 //     u2 name_and_type_index;
                 // }
-                info = new ConstantPoolInfo.Methodref(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantInfo.Methodref(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else if (type == ConstantType.InterfaceMethodref) {
                 // CONSTANT_InterfaceMethodref_info {
                 //     u1 tag;
                 //     u2 class_index;
                 //     u2 name_and_type_index;
                 // }
-                info = new ConstantPoolInfo.InterfaceMethodref(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantInfo.InterfaceMethodref(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else if (type == ConstantType.String) {
                 // CONSTANT_String_info {
                 //     u1 tag;
                 //     u2 string_index;
                 // }
-                info = new ConstantPoolInfo.String(stream.readUnsignedShort());
+                info = new ConstantInfo.String(stream.readUnsignedShort());
             } else if (type == ConstantType.Integer) {
                 // CONSTANT_Integer_info {
                 //     u1 tag;
                 //     u4 bytes;
                 // }
-                info = new ConstantPoolInfo.Integer(stream.readInt());
+                info = new ConstantInfo.Integer(stream.readInt());
             } else if (type == ConstantType.Float) {
                 // CONSTANT_Float_info {
                 //     u1 tag;
                 //     u4 bytes;
                 // }
-                info = new ConstantPoolInfo.Float(stream.readInt());
+                info = new ConstantInfo.Float(stream.readInt());
             } else if (type == ConstantType.Long) {
                 // CONSTANT_Long_info {
                 //     u1 tag;
                 //     u4 high_bytes;
                 //     u4 low_bytes;
                 // }
-                info = new ConstantPoolInfo.Long(stream.readInt(), stream.readInt());
+                info = new ConstantInfo.Long(stream.readInt(), stream.readInt());
             } else if (type == ConstantType.Double) {
                 // CONSTANT_Double_info {
                 //     u1 tag;
                 //     u4 high_bytes;
                 //     u4 low_bytes;
                 // }
-                info = new ConstantPoolInfo.Double(stream.readInt(), stream.readInt());
+                info = new ConstantInfo.Double(stream.readInt(), stream.readInt());
             } else if (type == ConstantType.NameAndType) {
                 // CONSTANT_NameAndType_info {
                 //     u1 tag;
                 //     u2 name_index;
                 //     u2 descriptor_index;
                 // }
-                info = new ConstantPoolInfo.NameAndType(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantInfo.NameAndType(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else if (type == ConstantType.Utf8) {
                 // CONSTANT_Utf8_info {
                 //     u1 tag;
@@ -144,27 +144,27 @@ public class ClassFileParser {
                 // }
                 byte[] bytes = new byte[stream.readUnsignedShort()];
                 stream.read(bytes);
-                info = new ConstantPoolInfo.Utf8(bytes);
+                info = new ConstantInfo.Utf8(bytes);
             } else if (type == ConstantType.MethodHandle) {
                 // CONSTANT_MethodHandle_info {
                 //     u1 tag;
                 //     u1 reference_kind;
                 //     u2 reference_index;
                 // }
-                info = new ConstantPoolInfo.MethodHandle(stream.readUnsignedByte(), stream.readUnsignedShort());
+                info = new ConstantInfo.MethodHandle(stream.readUnsignedByte(), stream.readUnsignedShort());
             } else if (type == ConstantType.MethodType) {
                 // CONSTANT_MethodType_info {
                 //     u1 tag;
                 //     u2 descriptor_index;
                 // }
-                info = new ConstantPoolInfo.MethodType(stream.readUnsignedByte());
+                info = new ConstantInfo.MethodType(stream.readUnsignedByte());
             } else if (type == ConstantType.InvokeDynamic) {
                 // CONSTANT_InvokeDynamic_info {
                 //     u1 tag;
                 //     u2 bootstrap_method_attr_index;
                 //     u2 name_and_type_index;
                 // }
-                info = new ConstantPoolInfo.InvokeDynamic(stream.readUnsignedShort(), stream.readUnsignedShort());
+                info = new ConstantInfo.InvokeDynamic(stream.readUnsignedShort(), stream.readUnsignedShort());
             } else {
                 throw new UnsupportedOperationException(String.format("Unhandled ConstantType (tag:%d)", tag));
             }

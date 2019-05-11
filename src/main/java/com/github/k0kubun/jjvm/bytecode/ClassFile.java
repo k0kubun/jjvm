@@ -1,10 +1,9 @@
 package com.github.k0kubun.jjvm.bytecode;
 
 public class ClassFile {
-    private final int magic;
     private final int minorVersion;
     private final int majorVersion;
-    private final ConstantPoolInfo[] constantPool;
+    private final ConstantInfo[] constantPool;
     private final int accessFlags;
     private final int thisClass;
     private final int superClass;
@@ -13,9 +12,13 @@ public class ClassFile {
     private final MethodInfo[] methods;
     private final AttributeInfo[] attributes;
 
-    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool, int accessFlags, int thisClass,
+    private final static int MAGIC = 0xCAFEBABE;
+
+    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantInfo[] constantPool, int accessFlags, int thisClass,
                      int superClass, int[] interfaces, FieldInfo[] fields, MethodInfo[] methods, AttributeInfo[] attributes) {
-        this.magic = magic;
+        if (magic != MAGIC) {
+            throw new RuntimeException(String.format("unexpected magic: 0x%X", magic));
+        }
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
         this.constantPool = constantPool;
@@ -30,12 +33,12 @@ public class ClassFile {
 
     public String disassemble() {
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("class Hello\n"));
-        builder.append(String.format("  magic: 0x%X\n", magic));
+        builder.append(String.format("class %s\n", utf8Constant(classConstant(thisClass).getDescriptorIndex()).getString()));
         builder.append(String.format("  minor version: %d\n", minorVersion));
         builder.append(String.format("  major version: %d\n", majorVersion));
-        builder.append(String.format("  flags: TODO\n"));
+        builder.append(String.format("  flags: [TODO]\n"));
         builder.append(disassembleConstantPool());
+        builder.append(disassembleMethods());
         return builder.toString();
     }
 
@@ -43,11 +46,43 @@ public class ClassFile {
         StringBuilder builder = new StringBuilder();
         builder.append("Constant pool:\n");
         for (int i = 0; i < constantPool.length; i++) {
-            String typeName = constantPool[i].getType().toString();
-            builder.append(String.format("%5s = %-19s", String.format("#%d", i + 1), typeName));
-            builder.append("TODO");
+            ConstantType type = constantPool[i].getType();
+            builder.append(String.format("%5s = %-19s", String.format("#%d", i + 1), type.toString()));
+
+            if (type == ConstantType.Class) {
+                int index = ((ConstantInfo.Class)constantPool[i]).getDescriptorIndex();
+                builder.append(String.format("#%-14d// %s", index, utf8Constant(index).getString()));
+            } else if (type == ConstantType.Utf8) {
+                ConstantInfo.Utf8 info = (ConstantInfo.Utf8)constantPool[i];
+                builder.append(info.getString());
+            } else {
+                builder.append("[TODO]");
+            }
+
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    private String disassembleMethods() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\n");
+        for (MethodInfo method : methods) {
+            builder.append(String.format("  %s();\n", utf8Constant(method.getNameIndex()).getString()));
+        }
+        builder.append("}\n");
+        return builder.toString();
+    }
+
+    private ConstantInfo.Class classConstant(int index) {
+        return (ConstantInfo.Class)constant(index);
+    }
+
+    private ConstantInfo.Utf8 utf8Constant(int index) {
+        return (ConstantInfo.Utf8)constant(index);
+    }
+
+    private ConstantInfo constant(int index) {
+        return constantPool[index - 1];
     }
 }

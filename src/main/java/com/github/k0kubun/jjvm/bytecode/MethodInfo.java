@@ -12,4 +12,8 @@ public class MethodInfo {
         this.descriptorIndex = descriptorIndex;
         this.attributes = attributes;
     }
+
+    public int getNameIndex() {
+        return this.nameIndex;
+    }
 }
