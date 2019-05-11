@@ -38,11 +38,11 @@ public class ClassFileParser {
         int interfacesCount = stream.readUnsignedShort();
         int[] interfaces = readUnsignedShorts(stream, interfacesCount);
         int fieldsCount = stream.readUnsignedShort();
-        FieldInfo[] fields = parseFields(stream, fieldsCount);
+        FieldInfo[] fields = parseFields(stream, fieldsCount, constantPool);
         int methodsCount = stream.readUnsignedShort();
-        MethodInfo[] methods = parseMethods(stream, methodsCount);
+        MethodInfo[] methods = parseMethods(stream, methodsCount, constantPool);
         int attributesCount = stream.readUnsignedShort();
-        AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
+        AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
 
         if (stream.available() > 0) {
             throw new RuntimeException(String.format("bytecode did not reach EOF after parse (available: %d)", stream.available()));
@@ -184,14 +184,14 @@ public class ClassFileParser {
     //     u2             attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    private FieldInfo[] parseFields(DataInputStream stream, int fieldsCount) throws IOException {
+    private FieldInfo[] parseFields(DataInputStream stream, int fieldsCount, ConstantInfo[] constantPool) throws IOException {
         FieldInfo[] fields = new FieldInfo[fieldsCount];
         for (int i = 0; i < fieldsCount; i++) {
             int accessFlags = stream.readUnsignedShort();
             int nameIndex = stream.readUnsignedShort();
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
-            AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
+            AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
             fields[i] = new FieldInfo(accessFlags, nameIndex, descriptorIndex, attributes);
         }
         return fields;
@@ -204,25 +204,26 @@ public class ClassFileParser {
     //     u2             attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    private MethodInfo[] parseMethods(DataInputStream stream, int methodsCount) throws IOException {
+    private MethodInfo[] parseMethods(DataInputStream stream, int methodsCount, ConstantInfo[] constantPool) throws IOException {
         MethodInfo[] methods = new MethodInfo[methodsCount];
         for (int i = 0; i < methodsCount; i++) {
             int accessFlags = stream.readUnsignedShort();
             int nameIndex = stream.readUnsignedShort();
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
-            AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
+            AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
             methods[i] = new MethodInfo(accessFlags, nameIndex, descriptorIndex, attributes);
         }
         return methods;
     }
 
-    private AttributeInfo[] parseAttributes(DataInputStream stream, int attributesCount) throws IOException {
+    private AttributeInfo[] parseAttributes(DataInputStream stream, int attributesCount, ConstantInfo[] constantPool) throws IOException {
         AttributeInfo[] attributes = new AttributeInfo[attributesCount];
         for (int j = 0; j < attributesCount; j++) {
             int attributeNameIndex = stream.readUnsignedShort();
+            String attributeName = ((ConstantInfo.Utf8)constantPool[attributeNameIndex - 1]).getString();
             int attributeLength = stream.readInt();
-            attributes[j] = new AttributeInfo(attributeNameIndex, readUnsignedBytes(stream, attributeLength));
+            attributes[j] = new AttributeInfo(attributeName, readUnsignedBytes(stream, attributeLength));
         }
         return attributes;
     }

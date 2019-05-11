@@ -16,4 +16,8 @@ public class MethodInfo {
     public int getNameIndex() {
         return this.nameIndex;
     }
+
+    public AttributeInfo[] getAttributes() {
+        return this.attributes;
+    }
 }

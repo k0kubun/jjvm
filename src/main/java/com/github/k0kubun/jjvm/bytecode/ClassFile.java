@@ -68,6 +68,9 @@ public class ClassFile {
         builder.append("{\n");
         for (MethodInfo method : methods) {
             builder.append(String.format("  %s();\n", utf8Constant(method.getNameIndex()).getString()));
+            for (AttributeInfo attribute : method.getAttributes()) {
+                builder.append(String.format("    %s:\n", attribute.getAttributeName()));
+            }
         }
         builder.append("}\n");
         return builder.toString();
