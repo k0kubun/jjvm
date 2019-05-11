@@ -41,6 +41,8 @@ public class ClassFileParser {
         FieldInfo[] fields = parseFields(stream, fieldsCount);
         int methodsCount = stream.readUnsignedShort();
         MethodInfo[] methods = parseMethods(stream, methodsCount);
+        int attributesCount = stream.readUnsignedShort();
+        AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
 
         return new ClassFile(
                 magic,
@@ -52,7 +54,8 @@ public class ClassFileParser {
                 superClass,
                 interfaces,
                 fields,
-                methods
+                methods,
+                attributes
         );
     }
 
