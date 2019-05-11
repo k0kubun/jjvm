@@ -53,8 +53,7 @@ public class ClassFile {
                 int index = ((ConstantInfo.Class)constantPool[i]).getDescriptorIndex();
                 builder.append(String.format("#%-14d// %s", index, utf8Constant(index).getString()));
             } else if (type == ConstantType.Utf8) {
-                ConstantInfo.Utf8 info = (ConstantInfo.Utf8)constantPool[i];
-                builder.append(info.getString());
+                builder.append(((ConstantInfo.Utf8)constantPool[i]).getString());
             } else {
                 builder.append("[TODO]");
             }

@@ -44,6 +44,10 @@ public class ClassFileParser {
         int attributesCount = stream.readUnsignedShort();
         AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
 
+        if (stream.available() > 0) {
+            throw new RuntimeException(String.format("bytecode did not reach EOF after parse (available: %d)", stream.available()));
+        }
+
         return new ClassFile(
                 magic,
                 minorVersion,
