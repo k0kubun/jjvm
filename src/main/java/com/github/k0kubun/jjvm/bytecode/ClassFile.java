@@ -1,16 +1,16 @@
 package com.github.k0kubun.jjvm.bytecode;
 
 public class ClassFile {
-    private Integer magic;
-    private Integer minorVersion;
-    private Integer majorVersion;
-    private Integer constantPoolCount;
+    private int magic;
+    private int minorVersion;
+    private int majorVersion;
+    private ConstantPoolInfo[] constantPool;
 
-    public ClassFile(Integer magic, Integer minorVersion, Integer majorVersion, Integer constantPoolCount) {
+    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool) {
         this.magic = magic;
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
-        this.constantPoolCount = constantPoolCount;
+        this.constantPool = constantPool;
     }
 
     public String disassemble() {
