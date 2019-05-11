@@ -2,19 +2,23 @@ package com.github.k0kubun.jjvm.bytecode;
 
 public class MethodInfo {
     private final int accessFlags;
-    private final int nameIndex;
-    private final int descriptorIndex;
+    private final String name;
+    private final String descriptor;
     private final AttributeInfo[] attributes;
 
-    public MethodInfo(int accessFlags, int nameIndex, int descriptorIndex, AttributeInfo[] attributes) {
+    public MethodInfo(int accessFlags, String name, String descriptor, AttributeInfo[] attributes) {
         this.accessFlags = accessFlags;
-        this.nameIndex = nameIndex;
-        this.descriptorIndex = descriptorIndex;
+        this.name = name;
+        this.descriptor = descriptor;
         this.attributes = attributes;
     }
 
-    public int getNameIndex() {
-        return this.nameIndex;
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescriptor() {
+        return this.descriptor;
     }
 
     public AttributeInfo[] getAttributes() {

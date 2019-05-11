@@ -212,18 +212,22 @@ public class ClassFileParser {
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
             AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
-            methods[i] = new MethodInfo(accessFlags, nameIndex, descriptorIndex, attributes);
+            methods[i] = new MethodInfo(accessFlags, getString(constantPool, nameIndex), getString(constantPool, descriptorIndex), attributes);
         }
         return methods;
     }
 
+    // attribute_info {
+    //     u2 attribute_name_index;
+    //     u4 attribute_length;
+    //     u1 info[attribute_length];
+    // }
     private AttributeInfo[] parseAttributes(DataInputStream stream, int attributesCount, ConstantInfo[] constantPool) throws IOException {
         AttributeInfo[] attributes = new AttributeInfo[attributesCount];
         for (int j = 0; j < attributesCount; j++) {
             int attributeNameIndex = stream.readUnsignedShort();
-            String attributeName = ((ConstantInfo.Utf8)constantPool[attributeNameIndex - 1]).getString();
             int attributeLength = stream.readInt();
-            attributes[j] = new AttributeInfo(attributeName, readUnsignedBytes(stream, attributeLength));
+            attributes[j] = new AttributeInfo(getString(constantPool, attributeNameIndex), readUnsignedBytes(stream, attributeLength));
         }
         return attributes;
     }
@@ -242,5 +246,9 @@ public class ClassFileParser {
             shorts[i] = stream.readUnsignedShort();
         }
         return shorts;
+    }
+
+    private String getString(ConstantInfo[] constantPool, int index) {
+        return ((ConstantInfo.Utf8)constantPool[index - 1]).getString();
     }
 }

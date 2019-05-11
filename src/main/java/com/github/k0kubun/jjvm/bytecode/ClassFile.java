@@ -65,9 +65,10 @@ public class ClassFile {
 
     private String disassembleMethods() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\n");
+        builder.append("{");
         for (MethodInfo method : methods) {
-            builder.append(String.format("  %s();\n", utf8Constant(method.getNameIndex()).getString()));
+            builder.append(String.format("\n  %s();\n", method.getName()));
+            builder.append(String.format("    descriptor: %s\n", method.getDescriptor()));
             for (AttributeInfo attribute : method.getAttributes()) {
                 builder.append(String.format("    %s:\n", attribute.getAttributeName()));
             }
