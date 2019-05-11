@@ -10,9 +10,10 @@ public class ClassFile {
     private final int superClass;
     private final int[] interfaces;
     private final FieldInfo[] fields;
+    private final MethodInfo[] methods;
 
-    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool,
-                     int accessFlags, int thisClass, int superClass, int[] interfaces, FieldInfo[] fields) {
+    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantPoolInfo[] constantPool, int accessFlags,
+                     int thisClass, int superClass, int[] interfaces, FieldInfo[] fields, MethodInfo[] methods) {
         this.magic = magic;
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
@@ -22,6 +23,7 @@ public class ClassFile {
         this.superClass = superClass;
         this.interfaces = interfaces;
         this.fields = fields;
+        this.methods = methods;
     }
 
     public String disassemble() {

@@ -39,6 +39,8 @@ public class ClassFileParser {
         int[] interfaces = readUnsignedShorts(stream, interfacesCount);
         int fieldsCount = stream.readUnsignedShort();
         FieldInfo[] fields = parseFields(stream, fieldsCount);
+        int methodsCount = stream.readUnsignedShort();
+        MethodInfo[] methods = parseMethods(stream, methodsCount);
 
         return new ClassFile(
                 magic,
@@ -49,7 +51,8 @@ public class ClassFileParser {
                 thisClass,
                 superClass,
                 interfaces,
-                fields
+                fields,
+                methods
         );
     }
 
@@ -181,17 +184,40 @@ public class ClassFileParser {
             int nameIndex = stream.readUnsignedShort();
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
-
-            AttributeInfo[] attributes = new AttributeInfo[attributesCount];
-            for (int j = 0; j < attributesCount; j++) {
-                int attributeNameIndex = stream.readUnsignedShort();
-                int attributeLength = stream.readInt();
-                attributes[j] = new AttributeInfo(attributeNameIndex, readUnsignedBytes(stream, attributeLength));
-            }
-
+            AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
             fields[i] = new FieldInfo(accessFlags, nameIndex, descriptorIndex, attributes);
         }
         return fields;
+    }
+
+    // method_info {
+    //     u2             access_flags;
+    //     u2             name_index;
+    //     u2             descriptor_index;
+    //     u2             attributes_count;
+    //     attribute_info attributes[attributes_count];
+    // }
+    private MethodInfo[] parseMethods(DataInputStream stream, int methodsCount) throws IOException {
+        MethodInfo[] methods = new MethodInfo[methodsCount];
+        for (int i = 0; i < methodsCount; i++) {
+            int accessFlags = stream.readUnsignedShort();
+            int nameIndex = stream.readUnsignedShort();
+            int descriptorIndex = stream.readUnsignedShort();
+            int attributesCount = stream.readUnsignedShort();
+            AttributeInfo[] attributes = parseAttributes(stream, attributesCount);
+            methods[i] = new MethodInfo(accessFlags, nameIndex, descriptorIndex, attributes);
+        }
+        return methods;
+    }
+
+    private AttributeInfo[] parseAttributes(DataInputStream stream, int attributesCount) throws IOException {
+        AttributeInfo[] attributes = new AttributeInfo[attributesCount];
+        for (int j = 0; j < attributesCount; j++) {
+            int attributeNameIndex = stream.readUnsignedShort();
+            int attributeLength = stream.readInt();
+            attributes[j] = new AttributeInfo(attributeNameIndex, readUnsignedBytes(stream, attributeLength));
+        }
+        return attributes;
     }
 
     private int[] readUnsignedBytes(DataInputStream stream, int length) throws IOException {
