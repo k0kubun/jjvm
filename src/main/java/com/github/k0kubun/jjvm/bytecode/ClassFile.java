@@ -79,10 +79,14 @@ public class ClassFile {
             declaration.add(method.getDescriptor().getReturn().getType());
             declaration.add(method.getName());
 
+            StringJoiner args = new StringJoiner(", ");
+            method.getDescriptor().getParameters().stream().forEach(p -> args.add(p.getType()));
+            System.out.println(method.getDescriptor().getParameters().size());
+
             StringJoiner flags = new StringJoiner(", ");
             method.getAccessFlags().stream().forEach(f -> flags.add(f.toString()));
 
-            builder.append(String.format("\n  %s();\n", declaration.toString()));
+            builder.append(String.format("\n  %s(%s);\n", declaration.toString(), args.toString()));
             builder.append(String.format("    descriptor: %s\n", method.getDescriptor().toString()));
             builder.append(String.format("    flags: %s\n", flags.toString()));
 

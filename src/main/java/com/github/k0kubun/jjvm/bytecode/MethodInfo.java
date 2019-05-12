@@ -100,5 +100,9 @@ public class MethodInfo {
         public ReturnDescriptor getReturn() {
             return returnDescriptor;
         }
+
+        public List<FieldType> getParameters() {
+            return parameters;
+        }
     }
 }

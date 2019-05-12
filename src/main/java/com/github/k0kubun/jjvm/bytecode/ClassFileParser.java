@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
 public class ClassFileParser {
@@ -234,17 +233,18 @@ public class ClassFileParser {
     // VoidDescriptor:
     //   V
     private MethodInfo.Descriptor parseMethodDescriptor(String descriptor) {
-        Scanner scanner = new Scanner(descriptor);
-        if (scanner.findInLine("\\(") == null) {
-            throw new RuntimeException(String.format("unexpected method descriptor start: %s", descriptor));
+        StringScanner scanner = new StringScanner(descriptor);
+        if (scanner.nextChar() != '(') {
+            throw new RuntimeException(String.format("method descriptor should start with '(', but was: %s", descriptor));
         }
 
         List<FieldType> parameters = new ArrayList<>();
-        while (scanner.findInLine("\\)") == null) {
+        while (scanner.peekChar() != ')') {
             parameters.add(scanFieldType(scanner));
         }
+        scanner.nextChar(); // )
 
-        MethodInfo.ReturnDescriptor returnDescriptor = scanner.findInLine("V") == null ?
+        MethodInfo.ReturnDescriptor returnDescriptor = scanner.peekChar() != 'V' ?
                 scanFieldType(scanner) : new MethodInfo.VoidDescriptor();
         return new MethodInfo.Descriptor(descriptor, returnDescriptor, parameters);
     }
@@ -269,13 +269,13 @@ public class ClassFileParser {
     //
     // ComponentType:
     //   FieldType
-    private FieldType scanFieldType(Scanner scanner) {
-        char c = scanner.findInLine(".").charAt(0);
+    private FieldType scanFieldType(StringScanner scanner) {
+        char c = scanner.nextChar();
         switch (c) {
             case '[':
                 return new FieldType.ArrayType(scanFieldType(scanner));
             case 'L':
-                String className = scanner.next(".*;");
+                String className = scanner.scanUntil(';');
                 return new FieldType.ObjectType(className.substring(0, className.length() - 1));
             default:
                 throw new UnsupportedOperationException(String.format("unexpected FieldType: %c", c));
@@ -352,5 +352,32 @@ public class ClassFileParser {
 
     private String getString(ConstantInfo[] constantPool, int index) {
         return ((ConstantInfo.Utf8)constantPool[index - 1]).getString();
+    }
+
+    private static class StringScanner {
+        private final String string;
+        private int pos;
+
+        public StringScanner(String string) {
+            this.string = string;
+            this.pos = 0;
+        }
+
+        public char peekChar() {
+            return string.charAt(pos);
+        }
+
+        public char nextChar() {
+            char ch = peekChar();
+            pos++;
+            return ch;
+        }
+
+        public String scanUntil(char character) {
+            int index = string.indexOf(character, pos);
+            String scanned = string.substring(pos, index + 1);
+            pos += (index + 1 - pos);
+            return scanned;
+        }
     }
 }
