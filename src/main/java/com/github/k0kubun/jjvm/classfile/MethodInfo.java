@@ -1,4 +1,4 @@
-package com.github.k0kubun.jjvm.bytecode;
+package com.github.k0kubun.jjvm.classfile;
 
 import java.util.ArrayList;
 import java.util.List;

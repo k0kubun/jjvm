@@ -1,4 +1,4 @@
-package com.github.k0kubun.jjvm.bytecode;
+package com.github.k0kubun.jjvm.classfile;
 
 public class FieldType implements MethodInfo.ReturnDescriptor {
     private final String type;

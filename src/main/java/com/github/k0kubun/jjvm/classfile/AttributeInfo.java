@@ -1,4 +1,4 @@
-package com.github.k0kubun.jjvm.bytecode;
+package com.github.k0kubun.jjvm.classfile;
 
 public class AttributeInfo {
     private final String name;

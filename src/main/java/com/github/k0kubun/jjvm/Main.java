@@ -1,7 +1,7 @@
 package com.github.k0kubun.jjvm;
 
-import com.github.k0kubun.jjvm.bytecode.ClassFile;
-import com.github.k0kubun.jjvm.bytecode.ClassFileParser;
+import com.github.k0kubun.jjvm.classfile.ClassFile;
+import com.github.k0kubun.jjvm.classfile.ClassFileParser;
 
 import java.io.IOException;
 

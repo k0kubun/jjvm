@@ -1,4 +1,4 @@
-package com.github.k0kubun.jjvm.bytecode;
+package com.github.k0kubun.jjvm.classfile;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -47,7 +47,7 @@ public class ClassFileParser {
         AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
 
         if (stream.available() > 0) {
-            throw new RuntimeException(String.format("bytecode did not reach EOF after parse (available: %d)", stream.available()));
+            throw new RuntimeException(String.format("classfile did not reach EOF after parse (available: %d)", stream.available()));
         }
 
         return new ClassFile(
