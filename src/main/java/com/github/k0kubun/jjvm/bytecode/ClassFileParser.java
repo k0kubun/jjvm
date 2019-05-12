@@ -227,17 +227,54 @@ public class ClassFileParser {
         for (int j = 0; j < attributesCount; j++) {
             int attributeNameIndex = stream.readUnsignedShort();
             int attributeLength = stream.readInt();
-            attributes[j] = new AttributeInfo(getString(constantPool, attributeNameIndex), readUnsignedBytes(stream, attributeLength));
+
+            String attributeName = getString(constantPool, attributeNameIndex);
+            if (attributeName.equals("Code")) {
+                attributes[j] = parseCodeAttribute(stream, constantPool);
+            } else {
+                stream.skipBytes(attributeLength);
+                attributes[j] = new AttributeInfo(attributeName);
+            }
         }
         return attributes;
     }
 
-    private int[] readUnsignedBytes(DataInputStream stream, int length) throws IOException {
-        int[] bytes = new int[length];
-        for (int i = 0; i < length; i++) {
-            bytes[i] = stream.readUnsignedByte();
+    // Code_attribute {
+    //     u2 attribute_name_index;
+    //     u4 attribute_length;
+    //     u2 max_stack;
+    //     u2 max_locals;
+    //     u4 code_length;
+    //     u1 code[code_length];
+    //     u2 exception_table_length;
+    //     {   u2 start_pc;
+    //         u2 end_pc;
+    //         u2 handler_pc;
+    //         u2 catch_type;
+    //     } exception_table[exception_table_length];
+    //     u2 attributes_count;
+    //     attribute_info attributes[attributes_count];
+    // }
+    private AttributeInfo.Code parseCodeAttribute(DataInputStream stream, ConstantInfo[] constantPool) throws IOException {
+        int maxStack = stream.readUnsignedShort();
+        int maxLocals = stream.readUnsignedShort();
+        byte[] code = new byte[stream.readInt()];
+        stream.read(code);
+
+        int exceptionTableLength = stream.readUnsignedShort();
+        AttributeInfo.Code.ExceptionTableEntry[] exceptionTable = new AttributeInfo.Code.ExceptionTableEntry[exceptionTableLength];
+        for (int i = 0; i < exceptionTableLength; i++) {
+            int startPc = stream.readUnsignedShort();
+            int endPc = stream.readUnsignedShort();
+            int handlerPc = stream.readUnsignedShort();
+            int catchType = stream.readUnsignedShort();
+            exceptionTable[i] = new AttributeInfo.Code.ExceptionTableEntry(startPc, endPc, handlerPc, catchType);
         }
-        return bytes;
+
+        int attributesCount = stream.readUnsignedShort();
+        AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
+
+        return new AttributeInfo.Code(maxStack, maxLocals, code, exceptionTable, attributes);
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

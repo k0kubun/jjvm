@@ -77,16 +77,16 @@ public class ClassFile {
             StringJoiner declaration = new StringJoiner(" ");
             method.getAccessFlags().stream().forEach(f -> declaration.add(f.getName()));
             declaration.add(method.getName());
-            builder.append(String.format("\n  %s();\n", declaration.toString()));
-
-            builder.append(String.format("    descriptor: %s\n", method.getDescriptor()));
 
             StringJoiner flags = new StringJoiner(", ");
             method.getAccessFlags().stream().forEach(f -> flags.add(f.toString()));
+
+            builder.append(String.format("\n  %s();\n", declaration.toString()));
+            builder.append(String.format("    descriptor: %s\n", method.getDescriptor()));
             builder.append(String.format("    flags: %s\n", flags.toString()));
 
             for (AttributeInfo attribute : method.getAttributes()) {
-                builder.append(String.format("    %s:\n", attribute.getAttributeName()));
+                builder.append(String.format("    %s:\n", attribute.getName()));
             }
         }
         builder.append("}\n");
