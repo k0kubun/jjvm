@@ -27,6 +27,18 @@ public class AttributeInfo {
             this.attributes = attributes;
         }
 
+        public int getMaxStack() {
+            return maxStack;
+        }
+
+        public int getMaxLocals() {
+            return maxLocals;
+        }
+
+        public AttributeInfo[] getAttributes() {
+            return attributes;
+        }
+
         public static class ExceptionTableEntry {
             private final int startPc;
             private final int endPc;

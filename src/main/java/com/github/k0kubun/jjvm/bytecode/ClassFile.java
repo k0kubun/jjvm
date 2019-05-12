@@ -86,10 +86,25 @@ public class ClassFile {
             builder.append(String.format("    flags: %s\n", flags.toString()));
 
             for (AttributeInfo attribute : method.getAttributes()) {
-                builder.append(String.format("    %s:\n", attribute.getName()));
+                builder.append(disassembleAttribute(attribute, 2));
             }
         }
         builder.append("}\n");
+        return builder.toString();
+    }
+
+    private String disassembleAttribute(AttributeInfo attribute, int indentLevel) {
+        IndentedString builder = new IndentedString(indentLevel);
+        if (attribute.getName().equals("Code")) {
+            AttributeInfo.Code codeAttribute = (AttributeInfo.Code)attribute;
+            builder.append(String.format("%s:\n", attribute.getName()));
+            builder.append(String.format("  stack=%d, locals=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals()));
+            for (AttributeInfo attr : codeAttribute.getAttributes()) {
+                builder.appendIndented(disassembleAttribute(attr, indentLevel + 1));
+            }
+        } else {
+            builder.append(String.format("%s: [TODO]\n", attribute.getName()));
+        }
         return builder.toString();
     }
 
@@ -125,11 +140,6 @@ public class ClassFile {
             return value;
         }
 
-        public String getName() {
-            String suffix = toString().substring(4); // trim ACC_
-            return suffix.toLowerCase();
-        }
-
         public static List<AccessFlag> fromInt(int accessFlags) {
             List<AccessFlag> list = new ArrayList<>();
             for (AccessFlag flag : AccessFlag.values()) {
@@ -138,6 +148,31 @@ public class ClassFile {
                 }
             }
             return list;
+        }
+    }
+
+    private static class IndentedString {
+        private final int indentLevel;
+        private final StringBuilder builder;
+
+        public IndentedString(int indentLevel) {
+            this.indentLevel = indentLevel;
+            this.builder = new StringBuilder();
+        }
+
+        public void append(String string) {
+            for (int i = 0; i < indentLevel; i++) {
+                builder.append("  ");
+            }
+            appendIndented(string);
+        }
+
+        public void appendIndented(String string) {
+            builder.append(string);
+        }
+
+        public String toString() {
+            return builder.toString();
         }
     }
 }
