@@ -3,6 +3,9 @@ package com.github.k0kubun.jjvm.bytecode;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
 public class ClassFileParser {
@@ -212,9 +215,71 @@ public class ClassFileParser {
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
             AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
-            methods[i] = new MethodInfo(accessFlags, getString(constantPool, nameIndex), getString(constantPool, descriptorIndex), attributes);
+            MethodInfo.Descriptor descriptor = parseMethodDescriptor(getString(constantPool, descriptorIndex));
+            methods[i] = new MethodInfo(accessFlags, getString(constantPool, nameIndex), descriptor, attributes);
         }
         return methods;
+    }
+
+    // MethodDescriptor:
+    //   ( {ParameterDescriptor} ) ReturnDescriptor
+    //
+    // ParameterDescriptor:
+    //   FieldType
+    //
+    // ReturnDescriptor:
+    //   FieldType
+    //   VoidDescriptor
+    //
+    // VoidDescriptor:
+    //   V
+    private MethodInfo.Descriptor parseMethodDescriptor(String descriptor) {
+        Scanner scanner = new Scanner(descriptor);
+        if (scanner.findInLine("\\(") == null) {
+            throw new RuntimeException(String.format("unexpected method descriptor start: %s", descriptor));
+        }
+
+        List<FieldType> parameters = new ArrayList<>();
+        while (scanner.findInLine("\\)") == null) {
+            parameters.add(scanFieldType(scanner));
+        }
+
+        MethodInfo.ReturnDescriptor returnDescriptor = scanner.findInLine("V") == null ?
+                scanFieldType(scanner) : new MethodInfo.VoidDescriptor();
+        return new MethodInfo.Descriptor(descriptor, returnDescriptor, parameters);
+    }
+
+    // FieldDescriptor:
+    //   FieldType
+    //
+    // FieldType:
+    //   BaseType
+    //   ObjectType
+    //   ArrayType
+    //
+    // BaseType:
+    //   (one of)
+    //   B C D F I J S Z
+    //
+    // ObjectType:
+    //   L ClassName ;
+    //
+    // ArrayType:
+    //   [ ComponentType
+    //
+    // ComponentType:
+    //   FieldType
+    private FieldType scanFieldType(Scanner scanner) {
+        char c = scanner.findInLine(".").charAt(0);
+        switch (c) {
+            case '[':
+                return new FieldType.ArrayType(scanFieldType(scanner));
+            case 'L':
+                String className = scanner.next(".*;");
+                return new FieldType.ObjectType(className.substring(0, className.length() - 1));
+            default:
+                throw new UnsupportedOperationException(String.format("unexpected FieldType: %c", c));
+        }
     }
 
     // attribute_info {

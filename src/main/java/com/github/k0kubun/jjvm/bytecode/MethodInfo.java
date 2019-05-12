@@ -6,10 +6,10 @@ import java.util.List;
 public class MethodInfo {
     private final List<AccessFlag> accessFlags;
     private final String name;
-    private final String descriptor;
+    private final Descriptor descriptor;
     private final AttributeInfo[] attributes;
 
-    public MethodInfo(int accessFlags, String name, String descriptor, AttributeInfo[] attributes) {
+    public MethodInfo(int accessFlags, String name, Descriptor descriptor, AttributeInfo[] attributes) {
         this.accessFlags = AccessFlag.fromInt(accessFlags);
         this.name = name;
         this.descriptor = descriptor;
@@ -24,7 +24,7 @@ public class MethodInfo {
         return this.name;
     }
 
-    public String getDescriptor() {
+    public Descriptor getDescriptor() {
         return this.descriptor;
     }
 
@@ -69,6 +69,36 @@ public class MethodInfo {
                 }
             }
             return list;
+        }
+    }
+
+    public interface ReturnDescriptor {
+        String getType();
+    }
+
+    public static class VoidDescriptor implements ReturnDescriptor {
+        public String getType() {
+            return "void";
+        }
+    }
+
+    public static class Descriptor {
+        private final String raw;
+        private final ReturnDescriptor returnDescriptor;
+        private final List<FieldType> parameters;
+
+        public Descriptor(String raw, ReturnDescriptor returnDescriptor, List<FieldType> parameters) {
+            this.raw = raw;
+            this.returnDescriptor = returnDescriptor;
+            this.parameters = parameters;
+        }
+
+        public String toString() {
+            return raw;
+        }
+
+        public ReturnDescriptor getReturn() {
+            return returnDescriptor;
         }
     }
 }
