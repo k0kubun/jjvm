@@ -1,6 +1,7 @@
 package com.github.k0kubun.jjvm.classfile;
 
 import java.util.StringJoiner;
+import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 
 public class ClassFileDisassembler {
     private final ClassFile classfile;
@@ -80,7 +81,7 @@ public class ClassFileDisassembler {
             builder.append(String.format("  stack=%d, locals=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals()));
             int pos = 0;
             for (Instruction instruction : codeAttribute.getInstructions()) {
-                builder.append(String.format("  %4d: %s\n", pos, instruction.getOpcode().getName()));
+                builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction)));
                 pos += 1 + instruction.getOpcode().getArgc();
             }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
@@ -90,6 +91,21 @@ public class ClassFileDisassembler {
             builder.append(String.format("%s: [TODO]\n", attribute.getName()));
         }
         return builder.toString();
+    }
+
+    private String disassembleInstruction(Instruction instruction) {
+        String name = instruction.getOpcode().getName();
+        Opcode opcode = instruction.getOpcode();
+
+        if (opcode == Opcode.Ldc) {
+            return String.format("%-13s #%d", name, instruction.getOperands()[0]);
+        } else if (opcode == Opcode.Getstatic
+                || opcode == Opcode.Invokevirtual
+                || opcode == Opcode.Invokespecial) {
+            return String.format("%-13s #%d", name, instruction.getIndex());
+        } else {
+            return name;
+        }
     }
 
     private ConstantInfo.Class classConstant(int index) {

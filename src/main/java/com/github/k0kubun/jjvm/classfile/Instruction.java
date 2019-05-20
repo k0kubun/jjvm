@@ -13,6 +13,15 @@ public class Instruction {
         return opcode;
     }
 
+    public byte[] getOperands() {
+        return operands;
+    }
+
+    // "indexbyte" operand
+    public int getIndex() {
+        return ((int)this.operands[0] << 4) + (int)this.operands[1];
+    }
+
     // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
     // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-7.html
     public enum Opcode {
@@ -126,7 +135,7 @@ public class Instruction {
         private final int argc;
 
         Opcode(int code, int argc) {
-            this.code = (byte) code;
+            this.code = (byte)code;
             this.argc = argc;
         }
 
