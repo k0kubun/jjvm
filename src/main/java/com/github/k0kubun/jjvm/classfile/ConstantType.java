@@ -37,7 +37,7 @@ public enum ConstantType {
         this.tag = tag;
     }
 
-    int getTag() {
+    public int getTag() {
         return tag;
     }
 

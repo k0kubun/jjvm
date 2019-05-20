@@ -104,6 +104,11 @@ public class ClassFile {
             AttributeInfo.Code codeAttribute = (AttributeInfo.Code)attribute;
             builder.append(String.format("%s:\n", attribute.getName()));
             builder.append(String.format("  stack=%d, locals=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals()));
+            int pos = 0;
+            for (Opcode opcode : codeAttribute.getOpcodes()) {
+                builder.append(String.format("  %4d: %s\n", pos, opcode.getName()));
+                pos++;
+            }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
                 builder.appendIndented(disassembleAttribute(attr, indentLevel + 1));
             }

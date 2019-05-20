@@ -323,8 +323,7 @@ public class ClassFileParser {
     private AttributeInfo.Code parseCodeAttribute(DataInputStream stream, ConstantInfo[] constantPool) throws IOException {
         int maxStack = stream.readUnsignedShort();
         int maxLocals = stream.readUnsignedShort();
-        byte[] code = new byte[stream.readInt()];
-        stream.read(code);
+        Opcode[] code = parseCode(stream, stream.readInt());
 
         int exceptionTableLength = stream.readUnsignedShort();
         AttributeInfo.Code.ExceptionTableEntry[] exceptionTable = new AttributeInfo.Code.ExceptionTableEntry[exceptionTableLength];
@@ -340,6 +339,15 @@ public class ClassFileParser {
         AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
 
         return new AttributeInfo.Code(maxStack, maxLocals, code, exceptionTable, attributes);
+    }
+
+    private Opcode[] parseCode(DataInputStream stream, int codeLength) throws IOException {
+        Opcode[] opcodes = new Opcode[codeLength];
+        for (int i = 0; i < codeLength; i++) {
+            byte code = (byte)stream.readUnsignedByte();
+            opcodes[i] = Opcode.fromCode(code);
+        }
+        return opcodes;
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

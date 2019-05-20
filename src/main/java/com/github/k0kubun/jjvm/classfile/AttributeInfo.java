@@ -14,17 +14,21 @@ public class AttributeInfo {
     public static class Code extends AttributeInfo {
         private final int maxStack;
         private final int maxLocals;
-        private final byte[] code;
+        private final Opcode[] opcodes;
         private final ExceptionTableEntry[] exceptionTable;
         private final AttributeInfo[] attributes;
 
-        public Code(int maxStack, int maxLocals, byte[] code, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
+        public Code(int maxStack, int maxLocals, Opcode[] opcodes, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
             super("Code");
             this.maxStack = maxStack;
             this.maxLocals = maxLocals;
-            this.code = code;
+            this.opcodes = opcodes;
             this.exceptionTable = exceptionTable;
             this.attributes = attributes;
+        }
+
+        public Opcode[] getOpcodes() {
+            return opcodes;
         }
 
         public int getMaxStack() {
