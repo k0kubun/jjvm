@@ -1,5 +1,7 @@
 package com.github.k0kubun.jjvm.classfile;
 
+import java.util.List;
+
 public class AttributeInfo {
     private final String name;
 
@@ -14,21 +16,21 @@ public class AttributeInfo {
     public static class Code extends AttributeInfo {
         private final int maxStack;
         private final int maxLocals;
-        private final Opcode[] opcodes;
+        private final List<Instruction> instructions;
         private final ExceptionTableEntry[] exceptionTable;
         private final AttributeInfo[] attributes;
 
-        public Code(int maxStack, int maxLocals, Opcode[] opcodes, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
+        public Code(int maxStack, int maxLocals, List<Instruction> instructions, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
             super("Code");
             this.maxStack = maxStack;
             this.maxLocals = maxLocals;
-            this.opcodes = opcodes;
+            this.instructions = instructions;
             this.exceptionTable = exceptionTable;
             this.attributes = attributes;
         }
 
-        public Opcode[] getOpcodes() {
-            return opcodes;
+        public List<Instruction> getInstructions() {
+            return instructions;
         }
 
         public int getMaxStack() {

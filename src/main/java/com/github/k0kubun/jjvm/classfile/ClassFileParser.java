@@ -323,7 +323,7 @@ public class ClassFileParser {
     private AttributeInfo.Code parseCodeAttribute(DataInputStream stream, ConstantInfo[] constantPool) throws IOException {
         int maxStack = stream.readUnsignedShort();
         int maxLocals = stream.readUnsignedShort();
-        Opcode[] code = parseCode(stream, stream.readInt());
+        List<Instruction> code = parseCode(stream, stream.readInt());
 
         int exceptionTableLength = stream.readUnsignedShort();
         AttributeInfo.Code.ExceptionTableEntry[] exceptionTable = new AttributeInfo.Code.ExceptionTableEntry[exceptionTableLength];
@@ -341,13 +341,22 @@ public class ClassFileParser {
         return new AttributeInfo.Code(maxStack, maxLocals, code, exceptionTable, attributes);
     }
 
-    private Opcode[] parseCode(DataInputStream stream, int codeLength) throws IOException {
-        Opcode[] opcodes = new Opcode[codeLength];
-        for (int i = 0; i < codeLength; i++) {
+    private List<Instruction> parseCode(DataInputStream stream, int codeLength) throws IOException {
+        List<Instruction> instructions = new ArrayList<>();
+        int bytesRead = 0;
+        while (bytesRead < codeLength) {
             byte code = (byte)stream.readUnsignedByte();
-            opcodes[i] = Opcode.fromCode(code);
+            Instruction.Opcode opcode = Instruction.Opcode.fromCode(code);
+
+            byte[] operands = new byte[opcode.getArgc()];
+            for (int i = 0; i < opcode.getArgc(); i++) {
+                operands[i] = (byte)stream.readUnsignedByte();
+            }
+
+            instructions.add(new Instruction(opcode, operands));
+            bytesRead += 1 + opcode.getArgc();
         }
-        return opcodes;
+        return instructions;
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

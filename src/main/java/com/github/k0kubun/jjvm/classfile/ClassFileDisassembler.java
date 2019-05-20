@@ -79,9 +79,9 @@ public class ClassFileDisassembler {
             builder.append(String.format("%s:\n", attribute.getName()));
             builder.append(String.format("  stack=%d, locals=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals()));
             int pos = 0;
-            for (Opcode opcode : codeAttribute.getOpcodes()) {
-                builder.append(String.format("  %4d: %s\n", pos, opcode.getName()));
-                pos++;
+            for (Instruction instruction : codeAttribute.getInstructions()) {
+                builder.append(String.format("  %4d: %s\n", pos, instruction.getOpcode().getName()));
+                pos += 1 + instruction.getOpcode().getArgc();
             }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
                 builder.appendIndented(disassembleAttribute(attr, indentLevel + 1));
