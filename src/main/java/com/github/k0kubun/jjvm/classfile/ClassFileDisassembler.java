@@ -15,7 +15,7 @@ public class ClassFileDisassembler {
         classfile.getAccessFlags().stream().forEach(f -> flags.add(f.toString()));
 
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("class %s\n", utf8Constant(classConstant(classfile.getThisClass()).getDescriptorIndex()).getString()));
+        builder.append(String.format("class %s\n", utf8Constant(classConstant(classfile.getThisClass()).getNameIndex()).getString()));
         builder.append(String.format("  minor version: %d\n", classfile.getMinorVersion()));
         builder.append(String.format("  major version: %d\n", classfile.getMajorVersion()));
         builder.append(String.format("  flags: %s\n", flags.toString()));
@@ -28,14 +28,27 @@ public class ClassFileDisassembler {
         StringBuilder builder = new StringBuilder();
         builder.append("Constant pool:\n");
         for (int i = 0; i < classfile.getConstantPool().length; i++) {
-            ConstantType type = classfile.getConstantPool()[i].getType();
-            builder.append(String.format("%5s = %-19s", String.format("#%d", i + 1), type.toString()));
+            ConstantInfo info = classfile.getConstantPool()[i];
+            builder.append(String.format("%5s = %-19s", String.format("#%d", i + 1), info.getType().toString()));
 
-            if (type == ConstantType.Class) {
-                int index = ((ConstantInfo.Class)classfile.getConstantPool()[i]).getDescriptorIndex();
+            if (info instanceof ConstantInfo.NamedInfo) {
+                int index = ((ConstantInfo.NamedInfo)info).getNameIndex();
                 builder.append(String.format("#%-14d// %s", index, utf8Constant(index).getString()));
-            } else if (type == ConstantType.Utf8) {
-                builder.append(((ConstantInfo.Utf8)classfile.getConstantPool()[i]).getString());
+            } else if (info instanceof ConstantInfo.ClassRefInfo) {
+                int classIndex = ((ConstantInfo.ClassRefInfo)info).getClassIndex();
+                int nameAndTypeIndex = ((ConstantInfo.ClassRefInfo)info).getNameAndTypeIndex();
+                builder.append(String.format("#%-14s// %s.%s",
+                        String.format("%d.%s", classIndex, nameAndTypeIndex),
+                        utf8Constant(classConstant(classIndex).getNameIndex()).getString(),
+                        getNameAndType(nameAndTypeIndex)));
+            } else if (info instanceof ConstantInfo.Utf8) {
+                builder.append(((ConstantInfo.Utf8) classfile.getConstantPool()[i]).getString());
+            } else if (info instanceof ConstantInfo.NameAndType) {
+                builder.append(String.format("#%-14s// %s",
+                        String.format("%d:%s",
+                                ((ConstantInfo.NameAndType)info).getNameIndex(),
+                                ((ConstantInfo.NameAndType)info).getDescriptorIndex()),
+                        getNameAndType(i + 1)));
             } else {
                 builder.append("[TODO]");
             }
@@ -106,6 +119,13 @@ public class ClassFileDisassembler {
         } else {
             return name;
         }
+    }
+
+    private String getNameAndType(int index) {
+        ConstantInfo.NameAndType info = (ConstantInfo.NameAndType)constant(index);
+        return String.format("%s:%s",
+                utf8Constant(info.getNameIndex()).getString(),
+                utf8Constant(info.getDescriptorIndex()).getString());
     }
 
     private ConstantInfo.Class classConstant(int index) {

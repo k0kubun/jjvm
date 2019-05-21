@@ -13,7 +13,16 @@ public class ConstantInfo {
         return type;
     }
 
-    public static class Class extends ConstantInfo {
+    public interface NamedInfo {
+        int getNameIndex();
+    }
+
+    public interface ClassRefInfo {
+        int getClassIndex();
+        int getNameAndTypeIndex();
+    }
+
+    public static class Class extends ConstantInfo implements NamedInfo {
         private final int descriptorIndex;
 
         public Class(int descriptorIndex) {
@@ -21,12 +30,13 @@ public class ConstantInfo {
             this.descriptorIndex = descriptorIndex;
         }
 
-        public int getDescriptorIndex() {
-            return this.descriptorIndex;
+        @Override
+        public int getNameIndex() {
+            return descriptorIndex;
         }
     }
 
-    public static class Fieldref extends ConstantInfo {
+    public static class Fieldref extends ConstantInfo implements ClassRefInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
@@ -35,9 +45,19 @@ public class ConstantInfo {
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
         }
+
+        @Override
+        public int getClassIndex() {
+            return classIndex;
+        }
+
+        @Override
+        public int getNameAndTypeIndex() {
+            return nameAndTypeIndex;
+        }
     }
 
-    public static class Methodref extends ConstantInfo {
+    public static class Methodref extends ConstantInfo implements ClassRefInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
@@ -45,6 +65,16 @@ public class ConstantInfo {
             super(ConstantType.Methodref);
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
+        }
+
+        @Override
+        public int getClassIndex() {
+            return classIndex;
+        }
+
+        @Override
+        public int getNameAndTypeIndex() {
+            return nameAndTypeIndex;
         }
     }
 
@@ -59,12 +89,17 @@ public class ConstantInfo {
         }
     }
 
-    public static class String extends ConstantInfo {
+    public static class String extends ConstantInfo implements NamedInfo {
         private final int stringIndex;
 
         public String(int stringIndex) {
             super(ConstantType.String);
             this.stringIndex = stringIndex;
+        }
+
+        @Override
+        public int getNameIndex() {
+            return stringIndex;
         }
     }
 
@@ -116,6 +151,14 @@ public class ConstantInfo {
             super(ConstantType.NameAndType);
             this.nameIndex = nameIndex;
             this.descriptorIndex = descriptorIndex;
+        }
+
+        public int getNameIndex() {
+            return nameIndex;
+        }
+
+        public int getDescriptorIndex() {
+            return descriptorIndex;
         }
     }
 
