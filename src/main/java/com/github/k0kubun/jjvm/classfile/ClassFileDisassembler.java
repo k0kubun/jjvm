@@ -38,14 +38,14 @@ public class ClassFileDisassembler {
                 int classIndex = ((ConstantInfo.ClassRefInfo)info).getClassIndex();
                 int nameAndTypeIndex = ((ConstantInfo.ClassRefInfo)info).getNameAndTypeIndex();
                 builder.append(String.format("#%-14s// %s.%s",
-                        String.format("%d.%s", classIndex, nameAndTypeIndex),
+                        String.format("%d.#%d", classIndex, nameAndTypeIndex),
                         utf8Constant(classConstant(classIndex).getNameIndex()).getString(),
                         getNameAndType(nameAndTypeIndex)));
             } else if (info instanceof ConstantInfo.Utf8) {
                 builder.append(((ConstantInfo.Utf8) classfile.getConstantPool()[i]).getString());
             } else if (info instanceof ConstantInfo.NameAndType) {
                 builder.append(String.format("#%-14s// %s",
-                        String.format("%d:%s",
+                        String.format("%d:#%d",
                                 ((ConstantInfo.NameAndType)info).getNameIndex(),
                                 ((ConstantInfo.NameAndType)info).getDescriptorIndex()),
                         getNameAndType(i + 1)));
@@ -69,7 +69,6 @@ public class ClassFileDisassembler {
 
             StringJoiner args = new StringJoiner(", ");
             method.getDescriptor().getParameters().stream().forEach(p -> args.add(p.getType()));
-            System.out.println(method.getDescriptor().getParameters().size());
 
             StringJoiner flags = new StringJoiner(", ");
             method.getAccessFlags().stream().forEach(f -> flags.add(f.toString()));
@@ -79,26 +78,30 @@ public class ClassFileDisassembler {
             builder.append(String.format("    flags: %s\n", flags.toString()));
 
             for (AttributeInfo attribute : method.getAttributes()) {
-                builder.append(disassembleAttribute(attribute, 2));
+                builder.append(disassembleAttribute(attribute, method, 2));
             }
         }
         builder.append("}\n");
         return builder.toString();
     }
 
-    private String disassembleAttribute(AttributeInfo attribute, int indentLevel) {
+    private String disassembleAttribute(AttributeInfo attribute, MethodInfo method, int indentLevel) {
         IndentedString builder = new IndentedString(indentLevel);
         if (attribute.getName().equals("Code")) {
             AttributeInfo.Code codeAttribute = (AttributeInfo.Code)attribute;
+            int argsSize = method.getDescriptor().getParameters().size();
+            if (!method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_STATIC))
+                argsSize++;
+
             builder.append(String.format("%s:\n", attribute.getName()));
-            builder.append(String.format("  stack=%d, locals=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals()));
+            builder.append(String.format("  stack=%d, locals=%d, args_size=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals(), argsSize));
             int pos = 0;
             for (Instruction instruction : codeAttribute.getInstructions()) {
                 builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction)));
                 pos += 1 + instruction.getOpcode().getArgc();
             }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
-                builder.appendIndented(disassembleAttribute(attr, indentLevel + 1));
+                builder.appendIndented(disassembleAttribute(attr, method, indentLevel + 1));
             }
         } else {
             builder.append(String.format("%s: [TODO]\n", attribute.getName()));
