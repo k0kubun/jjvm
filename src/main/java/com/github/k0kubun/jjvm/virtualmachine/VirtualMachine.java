@@ -7,6 +7,7 @@ import com.github.k0kubun.jjvm.classfile.MethodInfo;
 import java.util.HashMap;
 import java.util.Map;
 
+// A class hodling VM states and providing VM-related interfaces.
 public class VirtualMachine {
     private final Map<String, ClassFile> classMap;
 
