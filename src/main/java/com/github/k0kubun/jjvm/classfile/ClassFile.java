@@ -42,8 +42,10 @@ public class ClassFile {
         return majorVersion;
     }
 
-    public int getThisClass() {
-        return thisClass;
+    public String getThisClassName() {
+        ConstantInfo.Class klass = (ConstantInfo.Class)constantPool[thisClass - 1];
+        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex()];
+        return name.getString();
     }
 
     public List<AccessFlag> getAccessFlags() {

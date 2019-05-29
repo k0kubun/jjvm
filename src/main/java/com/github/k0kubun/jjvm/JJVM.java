@@ -2,6 +2,7 @@ package com.github.k0kubun.jjvm;
 
 import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser;
+import com.github.k0kubun.jjvm.virtualmachine.VirtualMachine;
 
 import java.io.IOException;
 
@@ -21,6 +22,8 @@ public class JJVM {
             return;
         }
 
-        System.out.println("Start JJVM!");
+        VirtualMachine vm = new VirtualMachine();
+        vm.loadClass(classFile);
+        vm.callStaticMethod(classFile.getThisClassName(), "main");
     }
 }

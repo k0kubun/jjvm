@@ -1,19 +1,24 @@
 package com.github.k0kubun.jjvm.classfile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MethodInfo {
     private final List<AccessFlag> accessFlags;
     private final String name;
     private final Descriptor descriptor;
-    private final AttributeInfo[] attributes;
+    private final Map<String, AttributeInfo> attributes;
 
     public MethodInfo(int accessFlags, String name, Descriptor descriptor, AttributeInfo[] attributes) {
         this.accessFlags = AccessFlag.fromInt(accessFlags);
         this.name = name;
         this.descriptor = descriptor;
-        this.attributes = attributes;
+        this.attributes = new HashMap<>();
+        for (AttributeInfo attribute : attributes) {
+            this.attributes.put(attribute.getName(), attribute);
+        }
     }
 
     public List<AccessFlag> getAccessFlags() {
@@ -28,7 +33,7 @@ public class MethodInfo {
         return this.descriptor;
     }
 
-    public AttributeInfo[] getAttributes() {
+    public Map<String, AttributeInfo> getAttributes() {
         return this.attributes;
     }
 

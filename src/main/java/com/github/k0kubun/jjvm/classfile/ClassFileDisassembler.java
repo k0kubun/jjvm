@@ -15,7 +15,7 @@ public class ClassFileDisassembler {
         classfile.getAccessFlags().stream().forEach(f -> flags.add(f.toString()));
 
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("class %s\n", utf8Constant(classConstant(classfile.getThisClass()).getNameIndex()).getString()));
+        builder.append(String.format("class %s\n", classfile.getThisClassName()));
         builder.append(String.format("  minor version: %d\n", classfile.getMinorVersion()));
         builder.append(String.format("  major version: %d\n", classfile.getMajorVersion()));
         builder.append(String.format("  flags: %s\n", flags.toString()));
@@ -96,7 +96,7 @@ public class ClassFileDisassembler {
             builder.append(String.format("    descriptor: %s\n", method.getDescriptor().toString()));
             builder.append(String.format("    flags: %s\n", flags.toString()));
 
-            for (AttributeInfo attribute : method.getAttributes()) {
+            for (AttributeInfo attribute : method.getAttributes().values()) {
                 builder.append(disassembleAttribute(attribute, method, 2));
             }
         }
@@ -129,8 +129,8 @@ public class ClassFileDisassembler {
     }
 
     private String disassembleInstruction(Instruction instruction) {
-        String name = instruction.getOpcode().getName();
         Opcode opcode = instruction.getOpcode();
+        String name = opcode.getName();
 
         if (opcode == Opcode.Ldc
                 || opcode == Opcode.Getstatic
