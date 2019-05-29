@@ -8,7 +8,11 @@ import java.io.IOException;
 
 public class Disassembler {
     public static void main(String[] args) throws IOException {
-        ClassFile classFile = new ClassFileParser().parse("test/Hello.class");
+        if (args.length != 1) {
+            System.out.println("Usage: jjvmp [class file]");
+            return;
+        }
+        ClassFile classFile = new ClassFileParser().parse(args[0]);
         System.out.println(new ClassFileDisassembler(classFile).disassemble());
     }
 }
