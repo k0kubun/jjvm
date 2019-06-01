@@ -6,8 +6,6 @@ import com.github.k0kubun.jjvm.classfile.ClassFileParser;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -28,12 +26,7 @@ public class ClassLoader {
                 ZipEntry entry;
                 while ((entry = jarStream.getNextEntry()) != null) {
                     if (entry.getName().equals(classPath)) {
-                        try {
-                            return new ClassFileParser().parse(jarStream);
-                        } catch (RuntimeException e) {
-                            System.out.println(String.format("LoadError: %s (%s; %s)", e.toString(), klass, jarPath));
-                            return null;
-                        }
+                        return new ClassFileParser().parse(jarStream);
                     }
                 }
             } catch (FileNotFoundException e) {

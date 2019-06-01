@@ -4,7 +4,8 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
 public class ClassFileParser {
@@ -46,7 +47,7 @@ public class ClassFileParser {
         int attributesCount = stream.readUnsignedShort();
         AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
 
-        if (stream.available() > 0) {
+        if (stream.read() != -1) {
             throw new RuntimeException(String.format("classfile did not reach EOF after parse (available: %d)", stream.available()));
         }
 
