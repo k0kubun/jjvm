@@ -32,8 +32,7 @@ public class VirtualMachine {
     }
 
     private void initializeClass(String klass) {
-        classLoader.loadClass(klass);
-        // TODO: loadClass here
+        loadClass(classLoader.loadClass(klass));
     }
 
     private MethodInfo searchMethod(ClassFile klass, String methodName) {
