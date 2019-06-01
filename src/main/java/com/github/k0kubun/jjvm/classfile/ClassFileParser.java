@@ -4,8 +4,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
 public class ClassFileParser {
@@ -301,6 +300,8 @@ public class ClassFileParser {
             String attributeName = getString(constantPool, attributeNameIndex);
             if (attributeName.equals("Code")) {
                 attributes[j] = parseCodeAttribute(stream, constantPool);
+            } else if (attributeName.equals("LineNumberTable")) {
+                attributes[j] = parseLineNumberTableAttribute(stream);
             } else {
                 stream.skipBytes(attributeLength);
                 attributes[j] = new AttributeInfo(attributeName);
@@ -362,6 +363,26 @@ public class ClassFileParser {
             bytesRead += 1 + opcode.getArgc();
         }
         return instructions;
+    }
+
+    // LineNumberTable_attribute {
+    //     u2 attribute_name_index;
+    //     u4 attribute_length;
+    //     u2 line_number_table_length;
+    //     {   u2 start_pc;
+    //         u2 line_number;
+    //     } line_number_table[line_number_table_length];
+    // }
+    private AttributeInfo.LineNumberTable parseLineNumberTableAttribute(DataInputStream stream) throws IOException {
+        int tableLength = stream.readUnsignedShort();
+        AttributeInfo.LineNumberTable.LineNumberEntry[] table = new AttributeInfo.LineNumberTable.LineNumberEntry[tableLength];
+
+        for (int i = 0; i < tableLength; i++) {
+            int startPc = stream.readUnsignedShort();
+            int lineNumber = stream.readUnsignedShort();
+            table[i] = new AttributeInfo.LineNumberTable.LineNumberEntry(startPc, lineNumber);
+        }
+        return new AttributeInfo.LineNumberTable(table);
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

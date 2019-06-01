@@ -59,4 +59,35 @@ public class AttributeInfo {
             }
         }
     }
+
+    public static class LineNumberTable extends AttributeInfo {
+        private final LineNumberEntry[] lineNumberTable;
+
+        public LineNumberTable(LineNumberEntry[] lineNumberTable) {
+            super("LineNumberTable");
+            this.lineNumberTable = lineNumberTable;
+        }
+
+        public LineNumberEntry[] getLineNumberTable() {
+            return lineNumberTable;
+        }
+
+        public static class LineNumberEntry {
+            private final int startPc;
+            private final int lineNumber;
+
+            public LineNumberEntry(int startPc, int lineNumber) {
+                this.startPc = startPc;
+                this.lineNumber = lineNumber;
+            }
+
+            public int getStartPc() {
+                return startPc;
+            }
+
+            public int getLineNumber() {
+                return lineNumber;
+            }
+        }
+    }
 }

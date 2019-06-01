@@ -106,8 +106,8 @@ public class ClassFileDisassembler {
 
     private String disassembleAttribute(AttributeInfo attribute, MethodInfo method, int indentLevel) {
         IndentedString builder = new IndentedString(indentLevel);
-        if (attribute.getName().equals("Code")) {
-            AttributeInfo.Code codeAttribute = (AttributeInfo.Code)attribute;
+        if (attribute instanceof AttributeInfo.Code) {
+            AttributeInfo.Code codeAttribute = (AttributeInfo.Code) attribute;
             int argsSize = method.getDescriptor().getParameters().size();
             if (!method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_STATIC))
                 argsSize++;
@@ -121,6 +121,11 @@ public class ClassFileDisassembler {
             }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
                 builder.appendIndented(disassembleAttribute(attr, method, indentLevel + 1));
+            }
+        } else if (attribute instanceof AttributeInfo.LineNumberTable) {
+            builder.append(String.format("%s:\n", attribute.getName()));
+            for (AttributeInfo.LineNumberTable.LineNumberEntry entry : ((AttributeInfo.LineNumberTable)attribute).getLineNumberTable()) {
+                builder.append(String.format("  line %d: %d\n", entry.getLineNumber(), entry.getStartPc()));
             }
         } else {
             builder.append(String.format("%s: [TODO]\n", attribute.getName()));
