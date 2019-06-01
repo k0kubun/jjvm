@@ -29,19 +29,23 @@ public class BytecodeInterpreter {
             Instruction instruction = instructions.get(pc);
             Opcode opcode = instruction.getOpcode();
 
-            if (opcode == Opcode.Getstatic) {
-                stack.push(getConstant(instruction.getIndex()));
-            } else if (opcode == Opcode.Ldc) {
-                stack.push(getConstant(instruction.getOperands()[0]));
-            } else if (opcode == Opcode.Invokevirtual) {
-                ConstantInfo.String str = (ConstantInfo.String)stack.pop();
-                ConstantInfo.Utf8 utf8 = (ConstantInfo.Utf8)getConstant(str.getNameIndex());
-                stack.pop(); // receiver
-                System.out.println(utf8.getString()); // TODO: dispatch properly
-            } else if (opcode == Opcode.Return) {
-                return;
-            } else {
-                throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
+            switch (opcode) {
+                case Getstatic:
+                    stack.push(getConstant(instruction.getIndex()));
+                    break;
+                case Ldc:
+                    stack.push(getConstant(instruction.getOperands()[0]));
+                    break;
+                case Invokevirtual:
+                    ConstantInfo.String str = (ConstantInfo.String)stack.pop();
+                    ConstantInfo.Utf8 utf8 = (ConstantInfo.Utf8)getConstant(str.getNameIndex());
+                    stack.pop(); // receiver
+                    System.out.println(utf8.getString()); // TODO: dispatch properly
+                    break;
+                case Return:
+                    return;
+                default:
+                    throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
             }
 
             pc++;
