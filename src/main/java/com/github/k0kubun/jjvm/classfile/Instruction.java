@@ -157,7 +157,7 @@ public class Instruction {
                     return opcode;
                 }
             }
-            throw new RuntimeException("Opcode is not defined for code: " + Integer.toHexString((int) code));
+            throw new RuntimeException(String.format("Opcode is not defined for code: %02x", code));
         }
     }
 }
