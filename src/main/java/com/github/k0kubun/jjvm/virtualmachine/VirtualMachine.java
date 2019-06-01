@@ -10,9 +10,14 @@ import java.util.Map;
 // A class hodling VM states and providing VM-related interfaces.
 public class VirtualMachine {
     private final Map<String, ClassFile> classMap;
+    private final ClassLoader classLoader;
 
+    // Threads::create_vm() equivalent
     public VirtualMachine() {
         classMap = new HashMap<>();
+        classLoader = new ClassLoader();
+        // initializeClass("java/lang/String");
+        initializeClass("java/lang/System");
     }
 
     // Load a ClassFile and return its class name.
@@ -24,6 +29,11 @@ public class VirtualMachine {
         ClassFile klass = classMap.get(className);
         MethodInfo method = searchMethod(klass, methodName);
         executeMethod(klass, method);
+    }
+
+    private void initializeClass(String klass) {
+        classLoader.loadClass(klass);
+        // TODO: loadClass here
     }
 
     private MethodInfo searchMethod(ClassFile klass, String methodName) {
