@@ -276,11 +276,17 @@ public class ClassFileParser {
     private FieldType scanFieldType(StringScanner scanner) {
         char c = scanner.nextChar();
         switch (c) {
-            case '[':
-                return new FieldType.ArrayType(scanFieldType(scanner));
+            case 'I':
+                return new FieldType.Int();
+            case 'J':
+                return new FieldType.Long();
+            case 'Z':
+                return new FieldType.Boolean();
             case 'L':
                 String className = scanner.scanUntil(';');
                 return new FieldType.ObjectType(className.substring(0, className.length() - 1));
+            case '[':
+                return new FieldType.ArrayType(scanFieldType(scanner));
             default:
                 throw new UnsupportedOperationException(String.format("unexpected FieldType: %c", c));
         }

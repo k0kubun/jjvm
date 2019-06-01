@@ -11,9 +11,35 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
         return this.type;
     }
 
+    // B	byte	signed byte
+    // C	char	Unicode character code point in the Basic Multilingual Plane, encoded with UTF-16
+    // D	double	double-precision floating-point value
+    // F	float	single-precision floating-point value
+    // I	int	    integer
+    // J	long	long integer
+    // S	short	signed short
+    // Z	boolean	true or false
     public static class BaseType extends FieldType {
         public BaseType(String type) {
             super(type);
+        }
+    }
+
+    public static class Int extends BaseType {
+        public Int() {
+            super("int");
+        }
+    }
+
+    public static class Long extends BaseType {
+        public Long() {
+            super("long");
+        }
+    }
+
+    public static class Boolean extends BaseType {
+        public Boolean() {
+            super("boolean");
         }
     }
 

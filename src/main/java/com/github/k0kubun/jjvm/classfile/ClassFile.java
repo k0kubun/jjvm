@@ -44,7 +44,7 @@ public class ClassFile {
 
     public String getThisClassName() {
         ConstantInfo.Class klass = (ConstantInfo.Class)constantPool[thisClass - 1];
-        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex()];
+        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex() - 1];
         return name.getString();
     }
 
