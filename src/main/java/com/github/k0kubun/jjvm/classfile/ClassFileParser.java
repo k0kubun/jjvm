@@ -3,6 +3,7 @@ package com.github.k0kubun.jjvm.classfile;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +27,8 @@ public class ClassFileParser {
     //     u2             attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    public ClassFile parse(String filename) throws IOException {
-        DataInputStream stream = new DataInputStream(new FileInputStream(filename));
+    public ClassFile parse(InputStream inputStream) throws IOException {
+        DataInputStream stream = new DataInputStream(inputStream);
 
         int magic = stream.readInt();
         int minorVersion = stream.readUnsignedShort();
@@ -63,6 +64,10 @@ public class ClassFileParser {
                 methods,
                 attributes
         );
+    }
+
+    public ClassFile parse(String filename) throws IOException {
+        return parse(new FileInputStream(filename));
     }
 
     // cp_info {

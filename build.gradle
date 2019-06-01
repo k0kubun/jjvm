@@ -2,22 +2,20 @@ apply plugin: 'application'
 
 project.ext.jjvmClass  = 'com.github.k0kubun.jjvm.JJVM'
 project.ext.jjvmpClass = 'com.github.k0kubun.jjvm.Disassembler'
-
 project.ext.args = project.findProperty('args') ? project.args.split('\\s+') : []
-project.ext.jarPath = 'build/libs/jjvm.jar'
 
 application {
     mainClassName = project.jjvmClass
 }
 
 task jjvm(type: Exec, dependsOn: [build]) {
-    commandLine(*['java', '-cp', project.jarPath, project.jjvmClass, *project.args])
+    commandLine(*['java', '-cp', sourceSets.main.runtimeClasspath.join(':'), project.jjvmClass, *project.args])
     group = 'JJVM'
     description = 'Run a classfile'
 }
 
 task jjvmp(type: Exec, dependsOn: [build]) {
-    commandLine(*['java', '-cp', project.jarPath, project.jjvmpClass, *project.args])
+    commandLine(*['java', '-cp', sourceSets.main.runtimeClasspath.join(':'), project.jjvmpClass, *project.args])
     group = 'JJVM'
     description = 'Disassemble a classfile'
 }
