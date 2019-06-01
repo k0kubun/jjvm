@@ -21,6 +21,9 @@ public class ClassFileDisassembler {
         builder.append(String.format("  flags: %s\n", flags.toString()));
         builder.append(disassembleConstantPool());
         builder.append(disassembleMethods());
+        for (AttributeInfo attribute : classfile.getAttributes()) {
+            builder.append(disassembleAttribute(attribute, null, 0));
+        }
         return builder.toString();
     }
 
@@ -107,6 +110,9 @@ public class ClassFileDisassembler {
     private String disassembleAttribute(AttributeInfo attribute, MethodInfo method, int indentLevel) {
         IndentedString builder = new IndentedString(indentLevel);
         if (attribute instanceof AttributeInfo.Code) {
+            if (method == null)
+                throw new RuntimeException("Code attribute is unexpected when method is null");
+
             AttributeInfo.Code codeAttribute = (AttributeInfo.Code) attribute;
             int argsSize = method.getDescriptor().getParameters().size();
             if (!method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_STATIC))
@@ -124,9 +130,12 @@ public class ClassFileDisassembler {
             }
         } else if (attribute instanceof AttributeInfo.LineNumberTable) {
             builder.append(String.format("%s:\n", attribute.getName()));
-            for (AttributeInfo.LineNumberTable.LineNumberEntry entry : ((AttributeInfo.LineNumberTable)attribute).getLineNumberTable()) {
+            for (AttributeInfo.LineNumberTable.LineNumberEntry entry : ((AttributeInfo.LineNumberTable) attribute).getLineNumberTable()) {
                 builder.append(String.format("  line %d: %d\n", entry.getLineNumber(), entry.getStartPc()));
             }
+        } else if (attribute instanceof AttributeInfo.SourceFile) {
+            String name = utf8Constant(((AttributeInfo.SourceFile)attribute).getIndex()).getString();
+            builder.append(String.format("%s: \"%s\"\n", attribute.getName(), name));
         } else {
             builder.append(String.format("%s: [TODO]\n", attribute.getName()));
         }

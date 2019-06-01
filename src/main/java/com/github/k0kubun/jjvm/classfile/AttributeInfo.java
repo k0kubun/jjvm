@@ -90,4 +90,17 @@ public class AttributeInfo {
             }
         }
     }
+
+    public static class SourceFile extends AttributeInfo {
+        private final int index;
+
+        public SourceFile(int index) {
+            super("SourceFile");
+            this.index = index;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+    }
 }

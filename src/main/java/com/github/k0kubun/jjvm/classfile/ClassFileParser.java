@@ -302,6 +302,8 @@ public class ClassFileParser {
                 attributes[j] = parseCodeAttribute(stream, constantPool);
             } else if (attributeName.equals("LineNumberTable")) {
                 attributes[j] = parseLineNumberTableAttribute(stream);
+            } else if (attributeName.equals("SourceFile")) {
+                attributes[j] = parseSourceFileAttribute(stream);
             } else {
                 stream.skipBytes(attributeLength);
                 attributes[j] = new AttributeInfo(attributeName);
@@ -383,6 +385,16 @@ public class ClassFileParser {
             table[i] = new AttributeInfo.LineNumberTable.LineNumberEntry(startPc, lineNumber);
         }
         return new AttributeInfo.LineNumberTable(table);
+    }
+
+    // SourceFile_attribute {
+    //     u2 attribute_name_index;
+    //     u4 attribute_length;
+    //     u2 sourcefile_index;
+    // }
+    private AttributeInfo.SourceFile parseSourceFileAttribute(DataInputStream stream) throws IOException {
+        int index = stream.readUnsignedShort();
+        return new AttributeInfo.SourceFile(index);
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

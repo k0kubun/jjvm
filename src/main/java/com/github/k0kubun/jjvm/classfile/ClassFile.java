@@ -60,6 +60,10 @@ public class ClassFile {
         return constantPool;
     }
 
+    public AttributeInfo[] getAttributes() {
+        return attributes;
+    }
+
     public enum AccessFlag {
         ACC_PUBLIC(0x0001),
         ACC_FINAL(0x0010),
