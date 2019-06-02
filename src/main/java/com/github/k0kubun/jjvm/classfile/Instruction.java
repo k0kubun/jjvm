@@ -56,7 +56,8 @@ public class Instruction {
         //Iconst3(0x06, 0),
         //Iconst4(0x07, 0),
         //Iconst5(0x08, 0),
-        Sipush(0x11, 1), // byte1, byte2
+        Bipush(0x10, 1), // byte
+        Sipush(0x11, 2), // byte1, byte2
         Ldc(0x12, 1), // index
 
         // === Loads ===
@@ -93,11 +94,20 @@ public class Instruction {
         // 51 (0x33)    baload
         // 52 (0x34)    caload
         // 53 (0x35)    saload
+        Aload(0x19, 1), // index
         Iload_0(0x1a, 0),
+        Iload_1(0x1b, 0),
+        Iload_2(0x1c, 0),
+        Iload_3(0x1d, 0),
+        Lload_1(0x1f, 0),
+        Fload_1(0x23, 0),
+        Dload_1(0x27, 0),
+        Dload_2(0x28, 0),
         Aload_0(0x2a, 0),
         Aload_1(0x2b, 0),
         Aload_2(0x2c, 0),
         Aload_3(0x2d, 0),
+        Caload(0x34, 0),
 
         // === Stores ===
         // 54 (0x36)    istore
@@ -133,10 +143,12 @@ public class Instruction {
         // 84 (0x54)    bastore
         // 85 (0x55)    castore
         // 86 (0x56)    sastore
+        Istore_3(0x3e, 0),
         Astore_0(0x4b, 0),
         Astore_1(0x4c, 0),
         Astore_2(0x4d, 0),
         Astore_3(0x4e, 0),
+        Astore(0x3a, 1), // index
 
         // === Stack ===
         // 87 (0x57)    pop
@@ -190,6 +202,7 @@ public class Instruction {
         // 131 (0x83)    lxor
         // 132 (0x84)    iinc
         Ior(0x80, 0),
+        Iinc(0x84, 2), // index, const
 
         // === Comparisons ===
         // 148 (0x94)    lcmp
@@ -212,6 +225,11 @@ public class Instruction {
         // 165 (0xa5)    if_acmpeq
         // 166 (0xa6)    if_acmpne
         Ifeq(0x99, 2), // branchbyte1, branchbyte2
+        Ifne(0x9a, 2), // branchbyte1, branchbyte2
+        Iflt(0x9b, 2), // branchbyte1, branchbyte2
+        IfIcmpeq(0xa0, 2), // branchbyte1, branchbyte2
+        IfIcmpge(0xa2, 2), // branchbyte1, branchbyte2
+        IfAcmpeq(0xa5, 2), // branchbyte1, branchbyte2
 
         // === Control ===
         // 167 (0xa7)    goto
@@ -226,6 +244,7 @@ public class Instruction {
         // 176 (0xb0)    areturn
         // 177 (0xb1)    return
         Goto(0xa7, 2), // branchbyte1, branchbyte2
+        Ireturn(0xac, 0),
         Areturn(0xb0, 0),
         Return(0xb1, 0),
 
@@ -250,13 +269,17 @@ public class Instruction {
         // 195 (0xc3)    monitorexit
         Getstatic(0xb2, 2), // indexbyte1, indexbyte2
         Putstatic(0xb3, 2), // indexbyte1, indexbyte2
+        Getfield(0xb4, 2), // indexbyte1, indexbyte2
+        Putfield(0xb5, 2), // indexbyte1, indexbyte2
         Invokevirtual(0xb6, 2), // indexbyte1, indexbyte2
         Invokespecial(0xb7, 2), // indexbyte1, indexbyte2
         Invokestatic(0xb8, 2), // indexbyte1, indexbyte2
         Invokeinterface(0xb9, 4), // indexbyte1, indexbyte2, count, 0
         New(0xbb, 2), // indexbyte1, indexbyte2
+        Arraylength(0xbe, 0),
         Athrow(0xbf, 0),
         Checkcast(0xc0, 2), // indexbyte1, indexbyte2
+        Instanceof(0xc1, 0), // indexbyte1, indexbyte2
         Monitorenter(0xc2, 0),
         Monitorexit(0xc3, 0),
 

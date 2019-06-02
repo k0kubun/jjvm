@@ -25,6 +25,30 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
         }
     }
 
+    public static class Byte extends BaseType {
+        public Byte() {
+            super("byte");
+        }
+    }
+
+    public static class Char extends BaseType {
+        public Char() {
+            super("char");
+        }
+    }
+
+    public static class Double extends BaseType {
+        public Double() {
+            super("double");
+        }
+    }
+
+    public static class Float extends BaseType {
+        public Float() {
+            super("float");
+        }
+    }
+
     public static class Int extends BaseType {
         public Int() {
             super("int");

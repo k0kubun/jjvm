@@ -99,7 +99,11 @@ public class ClassFileDisassembler {
             builder.append(String.format("    descriptor: %s\n", method.getDescriptor().toString()));
             builder.append(String.format("    flags: %s\n", flags.toString()));
 
+            // Show "Code" first
+            builder.append(disassembleAttribute(method.getAttributes().get("Code"), method, 2));
             for (AttributeInfo attribute : method.getAttributes().values()) {
+                if (attribute.getName().equals("Code"))
+                    continue;
                 builder.append(disassembleAttribute(attribute, method, 2));
             }
         }

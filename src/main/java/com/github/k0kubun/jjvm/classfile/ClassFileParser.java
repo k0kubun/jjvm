@@ -410,6 +410,14 @@ public class ClassFileParser {
         private static FieldType scanFieldType(StringScanner scanner) {
             char c = scanner.nextChar();
             switch (c) {
+                case 'B':
+                    return new FieldType.Byte();
+                case 'C':
+                    return new FieldType.Char();
+                case 'D':
+                    return new FieldType.Double();
+                case 'F':
+                    return new FieldType.Float();
                 case 'I':
                     return new FieldType.Int();
                 case 'J':

@@ -48,7 +48,7 @@ public class BytecodeInterpreter {
                     ConstantInfo.String str = (ConstantInfo.String)stack.pop().getValue();
                     ConstantInfo.Utf8 utf8 = (ConstantInfo.Utf8)getConstant(str.getNameIndex());
                     Value receiver = stack.pop();
-                    // vm.getClass(receiver.getType());
+                    vm.getClass(receiver.getType());
                     System.out.println(utf8.getString()); // TODO: dispatch properly
                     break;
                 case Return:
