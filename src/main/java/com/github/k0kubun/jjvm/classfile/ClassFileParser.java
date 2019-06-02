@@ -245,52 +245,13 @@ public class ClassFileParser {
 
         List<FieldType> parameters = new ArrayList<>();
         while (scanner.peekChar() != ')') {
-            parameters.add(scanFieldType(scanner));
+            parameters.add(DescriptorParser.parse(scanner));
         }
         scanner.nextChar(); // )
 
         MethodInfo.ReturnDescriptor returnDescriptor = scanner.peekChar() != 'V' ?
-                scanFieldType(scanner) : new MethodInfo.VoidDescriptor();
+                DescriptorParser.parse(scanner) : new MethodInfo.VoidDescriptor();
         return new MethodInfo.Descriptor(descriptor, returnDescriptor, parameters);
-    }
-
-    // FieldDescriptor:
-    //   FieldType
-    //
-    // FieldType:
-    //   BaseType
-    //   ObjectType
-    //   ArrayType
-    //
-    // BaseType:
-    //   (one of)
-    //   B C D F I J S Z
-    //
-    // ObjectType:
-    //   L ClassName ;
-    //
-    // ArrayType:
-    //   [ ComponentType
-    //
-    // ComponentType:
-    //   FieldType
-    private FieldType scanFieldType(StringScanner scanner) {
-        char c = scanner.nextChar();
-        switch (c) {
-            case 'I':
-                return new FieldType.Int();
-            case 'J':
-                return new FieldType.Long();
-            case 'Z':
-                return new FieldType.Boolean();
-            case 'L':
-                String className = scanner.scanUntil(';');
-                return new FieldType.ObjectType(className.substring(0, className.length() - 1));
-            case '[':
-                return new FieldType.ArrayType(scanFieldType(scanner));
-            default:
-                throw new UnsupportedOperationException(String.format("unexpected FieldType: %c", c));
-        }
     }
 
     // attribute_info {
@@ -414,6 +375,56 @@ public class ClassFileParser {
 
     private String getString(ConstantInfo[] constantPool, int index) {
         return ((ConstantInfo.Utf8)constantPool[index - 1]).getString();
+    }
+
+    public static class DescriptorParser {
+        public static FieldType parse(String descriptor) {
+            StringScanner scanner = new StringScanner(descriptor);
+            return parse(scanner);
+        }
+
+        public static FieldType parse(StringScanner scanner) {
+            return scanFieldType(scanner);
+        }
+
+        // FieldDescriptor:
+        //   FieldType
+        //
+        // FieldType:
+        //   BaseType
+        //   ObjectType
+        //   ArrayType
+        //
+        // BaseType:
+        //   (one of)
+        //   B C D F I J S Z
+        //
+        // ObjectType:
+        //   L ClassName ;
+        //
+        // ArrayType:
+        //   [ ComponentType
+        //
+        // ComponentType:
+        //   FieldType
+        private static FieldType scanFieldType(StringScanner scanner) {
+            char c = scanner.nextChar();
+            switch (c) {
+                case 'I':
+                    return new FieldType.Int();
+                case 'J':
+                    return new FieldType.Long();
+                case 'Z':
+                    return new FieldType.Boolean();
+                case 'L':
+                    String className = scanner.scanUntil(';');
+                    return new FieldType.ObjectType(className.substring(0, className.length() - 1));
+                case '[':
+                    return new FieldType.ArrayType(scanFieldType(scanner));
+                default:
+                    throw new UnsupportedOperationException(String.format("unexpected FieldType: %c", c));
+            }
+        }
     }
 
     private static class StringScanner {
