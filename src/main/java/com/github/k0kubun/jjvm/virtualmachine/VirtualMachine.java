@@ -4,6 +4,7 @@ import com.github.k0kubun.jjvm.classfile.AttributeInfo;
 import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
+import com.github.k0kubun.jjvm.virtualmachine.BytecodeInterpreter.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +22,26 @@ public class VirtualMachine {
         initializeClass("java/lang/System");
     }
 
+    // Load a ClassFile which is not loaded yet
+    public void loadClass(ClassFile classFile) {
+        classMap.put(classFile.getThisClassName(), classFile);
+    }
+
+    // Call an instance method
+    public void callMethod(String methodName, MethodInfo.Descriptor methodType, Value recv, Value[] args) {
+        ClassFile klass = getClass(recv.getType());
+        MethodInfo method = searchMethod(klass, methodName, methodType);
+        executeMethod(recv, klass, method);
+    }
+
+    public void callStaticMethod(String className, String methodName) {
+        ClassFile klass = classMap.get(className);
+        MethodInfo method = searchMethod(klass, methodName);
+        executeMethod(null, klass, method);
+    }
+
     // Get or load a class from FieldType
-    public ClassFile getClass(FieldType type) {
+    private ClassFile getClass(FieldType type) {
         if (type instanceof FieldType.ObjectType) {
             FieldType.ObjectType objectType = (FieldType.ObjectType)type;
             if (classMap.containsKey(objectType.getClassName())) {
@@ -35,34 +54,33 @@ public class VirtualMachine {
         }
     }
 
-    // Load a ClassFile which is not loaded yet
-    public void loadClass(ClassFile classFile) {
-        classMap.put(classFile.getThisClassName(), classFile);
-    }
-
-    public void callStaticMethod(String className, String methodName) {
-        ClassFile klass = classMap.get(className);
-        MethodInfo method = searchMethod(klass, methodName);
-        executeMethod(klass, method);
-    }
-
     private ClassFile initializeClass(String klass) {
         ClassFile classFile = classLoader.loadClass(klass);
         loadClass(classFile);
         return classFile;
     }
 
+    private MethodInfo searchMethod(ClassFile klass, String methodName, MethodInfo.Descriptor methodType) {
+        for (MethodInfo method : klass.getMethods()) {
+            if (method.getName().equals(methodName) && method.getDescriptor().equals(methodType)) {
+                return method;
+            }
+        }
+        throw new RuntimeException(String.format("NoMethodError: %s.%s (%s)", klass.getThisClassName(), methodName, methodType.toString()));
+    }
+
+    // deprecated
     private MethodInfo searchMethod(ClassFile klass, String methodName) {
         for (MethodInfo method : klass.getMethods()) {
             if (method.getName().equals(methodName)) {
                 return method;
             }
         }
-        return null;
+        throw new RuntimeException("NoMethodError: " + klass.getThisClassName() + "." + methodName);
     }
 
-    private void executeMethod(ClassFile klass, MethodInfo method) {
+    private void executeMethod(Value self, ClassFile klass, MethodInfo method) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        new BytecodeInterpreter(this, klass).execute(code);
+        new BytecodeInterpreter(this, self, klass).execute(code);
     }
 }

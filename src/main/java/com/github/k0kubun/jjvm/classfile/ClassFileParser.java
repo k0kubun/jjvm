@@ -48,7 +48,7 @@ public class ClassFileParser {
         AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
 
         if (stream.read() != -1) {
-            throw new RuntimeException(String.format("classfile did not reach EOF after parse (available: %d)", stream.available()));
+            throw new RuntimeException(String.format("classfile did not reach EOF after parseField (available: %d)", stream.available()));
         }
 
         return new ClassFile(
@@ -219,39 +219,10 @@ public class ClassFileParser {
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
             AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
-            MethodInfo.Descriptor descriptor = parseMethodDescriptor(getString(constantPool, descriptorIndex));
+            MethodInfo.Descriptor descriptor = DescriptorParser.parseMethod(getString(constantPool, descriptorIndex));
             methods[i] = new MethodInfo(accessFlags, getString(constantPool, nameIndex), descriptor, attributes);
         }
         return methods;
-    }
-
-    // MethodDescriptor:
-    //   ( {ParameterDescriptor} ) ReturnDescriptor
-    //
-    // ParameterDescriptor:
-    //   FieldType
-    //
-    // ReturnDescriptor:
-    //   FieldType
-    //   VoidDescriptor
-    //
-    // VoidDescriptor:
-    //   V
-    private MethodInfo.Descriptor parseMethodDescriptor(String descriptor) {
-        StringScanner scanner = new StringScanner(descriptor);
-        if (scanner.nextChar() != '(') {
-            throw new RuntimeException(String.format("method descriptor should start with '(', but was: %s", descriptor));
-        }
-
-        List<FieldType> parameters = new ArrayList<>();
-        while (scanner.peekChar() != ')') {
-            parameters.add(DescriptorParser.parse(scanner));
-        }
-        scanner.nextChar(); // )
-
-        MethodInfo.ReturnDescriptor returnDescriptor = scanner.peekChar() != 'V' ?
-                DescriptorParser.parse(scanner) : new MethodInfo.VoidDescriptor();
-        return new MethodInfo.Descriptor(descriptor, returnDescriptor, parameters);
     }
 
     // attribute_info {
@@ -378,12 +349,41 @@ public class ClassFileParser {
     }
 
     public static class DescriptorParser {
-        public static FieldType parse(String descriptor) {
+        // MethodDescriptor:
+        //   ( {ParameterDescriptor} ) ReturnDescriptor
+        //
+        // ParameterDescriptor:
+        //   FieldType
+        //
+        // ReturnDescriptor:
+        //   FieldType
+        //   VoidDescriptor
+        //
+        // VoidDescriptor:
+        //   V
+        public static MethodInfo.Descriptor parseMethod(String descriptor) {
             StringScanner scanner = new StringScanner(descriptor);
-            return parse(scanner);
+            if (scanner.nextChar() != '(') {
+                throw new RuntimeException(String.format("method descriptor should start with '(', but was: %s", descriptor));
+            }
+
+            List<FieldType> parameters = new ArrayList<>();
+            while (scanner.peekChar() != ')') {
+                parameters.add(DescriptorParser.parseField(scanner));
+            }
+            scanner.nextChar(); // )
+
+            MethodInfo.ReturnDescriptor returnDescriptor = scanner.peekChar() != 'V' ?
+                    parseField(scanner) : new MethodInfo.VoidDescriptor();
+            return new MethodInfo.Descriptor(descriptor, returnDescriptor, parameters);
         }
 
-        public static FieldType parse(StringScanner scanner) {
+        public static FieldType parseField(String descriptor) {
+            StringScanner scanner = new StringScanner(descriptor);
+            return parseField(scanner);
+        }
+
+        public static FieldType parseField(StringScanner scanner) {
             return scanFieldType(scanner);
         }
 

@@ -109,5 +109,15 @@ public class MethodInfo {
         public List<FieldType> getParameters() {
             return parameters;
         }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof Descriptor && raw.equals(other.toString());
+        }
+
+        @Override
+        public int hashCode() {
+            return raw.hashCode();
+        }
     }
 }
