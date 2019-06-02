@@ -129,6 +129,21 @@ public class ClassFileDisassembler {
                 builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction, pos)));
                 pos += 1 + instruction.getOpcode().getArgc();
             }
+
+            if (codeAttribute.getExceptionTable().length > 0) {
+                builder.append("  Exception table:\n");
+                builder.append("     from    to  target type\n");
+                for (AttributeInfo.Code.ExceptionTableEntry entry : codeAttribute.getExceptionTable()) {
+                    String type = "any";
+                    if (entry.getCatchType() != 0) {
+                        ConstantInfo.Class klass = classConstant(entry.getCatchType());
+                        type = String.format("Class %s", utf8Constant(klass.getNameIndex()).getString());
+                    }
+                    builder.append(String.format("     %5d %5d %5d   %s\n",
+                            entry.getStartPc(), entry.getEndPc(), entry.getHandlerPc(), type));
+                }
+            }
+
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
                 builder.appendIndented(disassembleAttribute(attr, method, indentLevel + 1));
             }

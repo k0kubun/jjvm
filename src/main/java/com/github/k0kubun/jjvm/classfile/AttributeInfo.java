@@ -45,6 +45,10 @@ public class AttributeInfo {
             return attributes;
         }
 
+        public ExceptionTableEntry[] getExceptionTable() {
+            return exceptionTable;
+        }
+
         public static class ExceptionTableEntry {
             private final int startPc;
             private final int endPc;
@@ -56,6 +60,22 @@ public class AttributeInfo {
                 this.endPc = endPc;
                 this.handlerPc = handlerPc;
                 this.catchType = catchType;
+            }
+
+            public int getStartPc() {
+                return startPc;
+            }
+
+            public int getEndPc() {
+                return endPc;
+            }
+
+            public int getHandlerPc() {
+                return handlerPc;
+            }
+
+            public int getCatchType() {
+                return catchType;
             }
         }
     }
