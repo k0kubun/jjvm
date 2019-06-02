@@ -44,8 +44,15 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
     }
 
     public static class ObjectType extends FieldType {
+        private final String className;
+
         public ObjectType(String type) {
             super(type.replace("/", "."));
+            className = type;
+        }
+
+        public String getClassName() {
+            return className;
         }
     }
 

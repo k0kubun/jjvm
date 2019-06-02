@@ -2,6 +2,7 @@ package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
 import com.github.k0kubun.jjvm.classfile.ClassFile;
+import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
 import java.util.HashMap;
@@ -20,7 +21,21 @@ public class VirtualMachine {
         initializeClass("java/lang/System");
     }
 
-    // Load a ClassFile and return its class name.
+    // Get or load a class from FieldType
+    public ClassFile getClass(FieldType type) {
+        if (type instanceof FieldType.ObjectType) {
+            FieldType.ObjectType objectType = (FieldType.ObjectType)type;
+            if (classMap.containsKey(objectType.getClassName())) {
+                return classMap.get(objectType.getClassName());
+            } else {
+                return initializeClass(objectType.getClassName());
+            }
+        } else {
+            throw new RuntimeException("unexpected FieldType is given to getClass: " + type.getType());
+        }
+    }
+
+    // Load a ClassFile which is not loaded yet
     public void loadClass(ClassFile classFile) {
         classMap.put(classFile.getThisClassName(), classFile);
     }
@@ -31,8 +46,10 @@ public class VirtualMachine {
         executeMethod(klass, method);
     }
 
-    private void initializeClass(String klass) {
-        loadClass(classLoader.loadClass(klass));
+    private ClassFile initializeClass(String klass) {
+        ClassFile classFile = classLoader.loadClass(klass);
+        loadClass(classFile);
+        return classFile;
     }
 
     private MethodInfo searchMethod(ClassFile klass, String methodName) {
@@ -46,6 +63,6 @@ public class VirtualMachine {
 
     private void executeMethod(ClassFile klass, MethodInfo method) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        new BytecodeInterpreter(klass).execute(code);
+        new BytecodeInterpreter(this, klass).execute(code);
     }
 }

@@ -15,11 +15,13 @@ import java.util.List;
 // The core of the VirtualMachine.
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
 public class BytecodeInterpreter {
+    private final VirtualMachine vm;
     private final ClassFile klass;
     private int pc; // program counter
     private final Deque<Value> stack;
 
-    public BytecodeInterpreter(ClassFile klass) {
+    public BytecodeInterpreter(VirtualMachine vm, ClassFile klass) {
+        this.vm = vm;
         this.klass = klass;
         this.stack = new ArrayDeque<>();
         this.pc = 0;
@@ -45,7 +47,8 @@ public class BytecodeInterpreter {
                 case Invokevirtual:
                     ConstantInfo.String str = (ConstantInfo.String)stack.pop().getValue();
                     ConstantInfo.Utf8 utf8 = (ConstantInfo.Utf8)getConstant(str.getNameIndex());
-                    stack.pop(); // receiver
+                    Value receiver = stack.pop();
+                    // vm.getClass(receiver.getType());
                     System.out.println(utf8.getString()); // TODO: dispatch properly
                     break;
                 case Return:
