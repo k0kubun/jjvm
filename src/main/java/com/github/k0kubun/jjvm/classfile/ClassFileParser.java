@@ -1,5 +1,6 @@
 package com.github.k0kubun.jjvm.classfile;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -241,6 +242,8 @@ public class ClassFileParser {
                 attributes[j] = parseCodeAttribute(stream, constantPool);
             } else if (attributeName.equals("LineNumberTable")) {
                 attributes[j] = parseLineNumberTableAttribute(stream);
+            } else if (attributeName.equals("StackMapTable")) {
+                attributes[j] = parseStackMapTableAttribute(stream);
             } else if (attributeName.equals("SourceFile")) {
                 attributes[j] = parseSourceFileAttribute(stream);
             } else {
@@ -324,6 +327,98 @@ public class ClassFileParser {
             table[i] = new AttributeInfo.LineNumberTable.LineNumberEntry(startPc, lineNumber);
         }
         return new AttributeInfo.LineNumberTable(table);
+    }
+
+    // StackMapTable_attribute {
+    //     u2              attribute_name_index;
+    //     u4              attribute_length;
+    //     u2              number_of_entries;
+    //     stack_map_frame entries[number_of_entries];
+    // }
+    private AttributeInfo.StackMapTable parseStackMapTableAttribute(DataInputStream stream) throws IOException {
+        int numberOfEntries = stream.readUnsignedShort();
+        AttributeInfo.StackMapTable.StackMapFrame[] entries = new AttributeInfo.StackMapTable.StackMapFrame[numberOfEntries];
+        for (int i = 0; i < numberOfEntries; i++) {
+            int tag = stream.readUnsignedByte();
+            if (0 <= tag && tag <= 63) {
+                // same_frame {
+                //     u1 frame_type = SAME; /* 0-63 */
+                // }
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.Same(tag);
+            } else if (64 <= tag && tag <= 127) {
+                // same_locals_1_stack_item_frame {
+                //     u1 frame_type = SAME_LOCALS_1_STACK_ITEM; /* 64-127 */
+                //     verification_type_info stack[1];
+                // }
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.SameLocals1StackItem(tag,
+                        parseVerificationTypeInfo(stream, 1));
+            } else if (tag == 247) {
+                // same_locals_1_stack_item_frame_extended {
+                //     u1 frame_type = SAME_LOCALS_1_STACK_ITEM_EXTENDED; /* 247 */
+                //     u2 offset_delta;
+                //     verification_type_info stack[1];
+                // }
+                int offsetDelta = stream.readUnsignedShort();
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.SameLocals1StackItemExtended(tag, offsetDelta,
+                        parseVerificationTypeInfo(stream, 1));
+            } else if (248 <= tag && tag <= 250) {
+                // chop_frame {
+                //     u1 frame_type = CHOP; /* 248-250 */
+                //     u2 offset_delta;
+                // }
+                int offsetDelta = stream.readUnsignedShort();
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.Chop(tag, offsetDelta);
+            } else if (tag == 251) {
+                // same_frame_extended {
+                //     u1 frame_type = SAME_FRAME_EXTENDED; /* 251 */
+                //     u2 offset_delta;
+                // }
+                int offsetDelta = stream.readUnsignedShort();
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.SameFrameExtended(tag, offsetDelta);
+            } else if (252 <= tag && tag <= 254) {
+                // append_frame {
+                //     u1 frame_type = APPEND; /* 252-254 */
+                //     u2 offset_delta;
+                //     verification_type_info locals[frame_type - 251];
+                // }
+                int offsetDelta = stream.readUnsignedShort();
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.Append(tag, offsetDelta,
+                        parseVerificationTypeInfo(stream, tag - 251));
+            } else if (tag == 255) {
+                // full_frame {
+                //     u1 frame_type = FULL_FRAME; /* 255 */
+                //     u2 offset_delta;
+                //     u2 number_of_locals;
+                //     verification_type_info locals[number_of_locals];
+                //     u2 number_of_stack_items;
+                //     verification_type_info stack[number_of_stack_items];
+                // }
+                int offsetDelta = stream.readUnsignedShort();
+                int numberOfLocals = stream.readUnsignedShort();
+                AttributeInfo.StackMapTable.VerificationTypeInfo[] locals = parseVerificationTypeInfo(stream, numberOfLocals);
+                int numberOfStackItems = stream.readUnsignedShort();
+                AttributeInfo.StackMapTable.VerificationTypeInfo[] stack = parseVerificationTypeInfo(stream, numberOfStackItems);
+                entries[i] = new AttributeInfo.StackMapTable.StackMapFrame.FullFrame(tag, offsetDelta, locals, stack);
+            } else {
+                throw new RuntimeException("Unexpected tag for StackMapFrame: " + tag);
+            }
+        }
+        return new AttributeInfo.StackMapTable(entries);
+    }
+
+    private AttributeInfo.StackMapTable.VerificationTypeInfo[] parseVerificationTypeInfo(DataInputStream stream, int n) throws IOException {
+        AttributeInfo.StackMapTable.VerificationTypeInfo[] infos = new AttributeInfo.StackMapTable.VerificationTypeInfo[n];
+        for (int i = 0; i < n; i++) {
+            int tag = stream.readUnsignedByte();
+            // TODO: bake tag type to VerificationTypeInfo
+            if (tag == 7) {
+                stream.readUnsignedShort(); // cpool_index
+            } else if (tag == 8) {
+                stream.readUnsignedShort(); // offset
+            }
+            infos[i] = new AttributeInfo.StackMapTable.VerificationTypeInfo(tag);
+        }
+        return infos;
     }
 
     // SourceFile_attribute {
