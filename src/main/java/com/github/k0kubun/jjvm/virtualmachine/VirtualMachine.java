@@ -28,16 +28,16 @@ public class VirtualMachine {
     }
 
     // Call an instance method
-    public void callMethod(String methodName, MethodInfo.Descriptor methodType, Value recv, Value[] args) {
-        ClassFile klass = getClass(recv.getType());
+    public void callMethod(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+        ClassFile klass = getClass(args[0].getType());
         MethodInfo method = searchMethod(klass, methodName, methodType);
-        executeMethod(recv, klass, method);
+        executeMethod(klass, method, args);
     }
 
     public void callStaticMethod(String className, String methodName) {
         ClassFile klass = classMap.get(className);
         MethodInfo method = searchMethod(klass, methodName);
-        executeMethod(null, klass, method);
+        executeMethod(klass, method, new Value[]{});
     }
 
     // Get or load a class from FieldType
@@ -79,8 +79,8 @@ public class VirtualMachine {
         throw new RuntimeException("NoMethodError: " + klass.getThisClassName() + "." + methodName);
     }
 
-    private void executeMethod(Value self, ClassFile klass, MethodInfo method) {
+    private void executeMethod(ClassFile klass, MethodInfo method, Value[] args) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        new BytecodeInterpreter(this, self, klass).execute(code);
+        new BytecodeInterpreter(this, klass).execute(code, args);
     }
 }

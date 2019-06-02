@@ -168,6 +168,7 @@ public class ClassFileDisassembler {
         switch (opcode) {
             case Ldc:
             case Getstatic:
+            case Getfield:
             case Invokevirtual:
             case Invokespecial:
                 int index;
@@ -190,6 +191,7 @@ public class ClassFileDisassembler {
                         info.getType().toString().replaceFirst("ref\\z", ""),
                         label);
             case Goto:
+            case Ifnonnull:
                 return String.format("%-13s %d", name, pos + instruction.getIndex());
             default:
                 return name;

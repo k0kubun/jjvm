@@ -18,80 +18,94 @@ import java.util.List;
 public class BytecodeInterpreter {
     private final VirtualMachine vm;
     private final ClassFile klass;
-    private final Value self;
     private int pc; // program counter
     private final Deque<Value> stack;
 
-    public BytecodeInterpreter(VirtualMachine vm, Value self, ClassFile klass) {
+    public BytecodeInterpreter(VirtualMachine vm, ClassFile klass) {
         this.vm = vm;
         this.klass = klass;
-        this.self = self;
         this.stack = new ArrayDeque<>();
         this.pc = 0;
     }
 
-    public void execute(AttributeInfo.Code code) {
+    public void execute(AttributeInfo.Code code, Value[] methodArgs) {
+        Value[] locals = new Value[code.getMaxLocals()];
+        for (int i = 0; i < methodArgs.length; i++) {
+            locals[i] = methodArgs[i];
+        }
         List<Instruction> instructions = code.getInstructions();
+
         while (true) {
             Instruction instruction = instructions.get(pc);
             Opcode opcode = instruction.getOpcode();
 
             switch (opcode) {
-                // Nop
-                // Aconst_Null
-                // Iconst_M1
-                // Iconst_0
-                // Iconst_1
-                // Bipush
-                // Sipush
+                // case Nop:
+                // case Aconst_Null:
+                // case Iconst_M1:
+                // case Iconst_0:
+                // case Iconst_1:
+                // case Bipush:
+                // case Sipush:
                 case Ldc:
                     FieldType type = DescriptorParser.parseField("Ljava/lang/String;"); // TODO: switch on constant type
                     stack.push(new Value(type, getConstant(instruction.getOperands()[0])));
                     break;
-                // Aload
-                // Iload_0
-                // Iload_1
-                // Iload_2
-                // Iload_3
-                // Lload_1
-                // Fload_1
-                // Dload_1
-                // Dload_2
-                // Aload_0
-                // Aload_1
-                // Aload_2
-                // Aload_3
-                // Caload
-                // Istore_3
-                // Astore_0
-                // Astore_1
-                // Astore_2
-                // Astore_3
-                // Astore
-                // Pop
-                // Dup
-                // Ior
-                // Iinc
-                // Ifeq
-                // Ifne
-                // Iflt
-                // IfIcmpeq
-                // IfIcmpge
-                // IfAcmpeq
-                // Goto
-                // Ireturn
-                // Areturn
+                // case Aload:
+                // case Iload_0:
+                // case Iload_1:
+                // case Iload_2:
+                // case Iload_3:
+                // case Lload_1:
+                // case Fload_1:
+                // case Dload_1:
+                // case Dload_2:
+                case Aload_0:
+                    stack.push(locals[0]);
+                    break;
+                case Aload_1:
+                    stack.push(locals[1]);
+                    break;
+                // case Aload_2:
+                // case Aload_3:
+                // case Caload:
+                // case Istore_3:
+                // case Astore_0:
+                case Astore_1:
+                    locals[1] = stack.pop();
+                    break;
+                case Astore_2:
+                    locals[2] = stack.pop();
+                    break;
+                // case Astore_3:
+                // case Astore:
+                // case Pop:
+                case Dup:
+                    stack.push(stack.getFirst());
+                    break;
+                // case Ior:
+                // case Iinc:
+                // case Ifeq:
+                // case Ifne:
+                // case Iflt:
+                // case IfIcmpeq:
+                // case IfIcmpge:
+                // case IfAcmpeq:
+                // case Goto:
+                // case Ireturn:
+                // case Areturn:
                 case Return:
                     return;
                 case Getstatic:
-                    ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // TODO: switch on constant type
+                    // TODO: fetch from actual static field
+                    ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // TODO: switch on constant type for cast
                     ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(value.getNameAndTypeIndex());
                     type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
                     stack.push(new Value(type, value));
                     break;
-                // Putstatic
-                // Getfield
-                // Putfield
+                // case Putstatic:
+                // case Getfield:
+                // case Putfield:
                 case Invokevirtual:
                     /*
                     ConstantInfo.String str = (ConstantInfo.String)stack.pop().getValue();
@@ -100,38 +114,49 @@ public class BytecodeInterpreter {
                     vm.getClass(receiver.getType());
                     System.out.println(utf8.getString());
                      */
-                    ConstantInfo.Methodref methodref = (ConstantInfo.Methodref)getConstant(instruction.getIndex());
-                    nameAndType = (ConstantInfo.NameAndType)getConstant(methodref.getNameAndTypeIndex());
-                    String methodName = ((ConstantInfo.Utf8)getConstant(nameAndType.getNameIndex())).getString();
-                    MethodInfo.Descriptor methodType = DescriptorParser.parseMethod(
-                            ((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
-
-                    Value[] args = new Value[methodType.getParameters().size()];
-                    for (int i = 0; i < args.length; i++) {
-                        args[args.length - 1 - i] = stack.pop();
-                    }
-                    Value recv = stack.pop();
-
-                    vm.callMethod(methodName, methodType, recv, args);
+                    // fallthrough
+                case Invokespecial:
+                    // TODO: handle `protected` specially
+                    invokeMethod(instruction.getIndex());
                     break;
-                // Invokespecial
-                // Invokestatic
-                // Invokeinterface
-                // New
-                // Arraylength
-                // Athrow
-                // Checkcast
-                // Instanceof
-                // Monitorenter
-                // Monitorexit
-                // Ifnull
-                // Ifnonnull
+                // case Invokestatic:
+                // case Invokeinterface:
+                // case New:
+                // case Arraylength:
+                // case Athrow:
+                // case Checkcast:
+                // case Instanceof:
+                case Monitorenter:
+                    stack.pop(); // TODO: synchronize this
+                    break;
+                // case Monitorexit:
+                // case Ifnull:
+                case Ifnonnull:
+                    if (stack.pop() != null) { // TODO: will we really use null as null Value?
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 default:
                     throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
             }
 
             pc++;
         }
+    }
+
+    private void invokeMethod(int methodIndex) {
+        ConstantInfo.Methodref methodref = (ConstantInfo.Methodref)getConstant(methodIndex);
+        ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(methodref.getNameAndTypeIndex());
+        String methodName = ((ConstantInfo.Utf8)getConstant(nameAndType.getNameIndex())).getString();
+        MethodInfo.Descriptor methodType = DescriptorParser.parseMethod(
+                ((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
+
+        Value[] args = new Value[methodType.getParameters().size() + 1]; // including receiver
+        for (int i = 0; i < args.length; i++) {
+            args[args.length - 1 - i] = stack.pop();
+        }
+        vm.callMethod(methodName, methodType, args);
     }
 
     private ConstantInfo getConstant(int index) {
