@@ -17,11 +17,11 @@ import java.util.List;
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
 public class BytecodeInterpreter {
     private final VirtualMachine vm;
-    private final ClassFile klass;
+    private final Value.Class klass;
     private int pc; // program counter
     private final Deque<Value> stack;
 
-    public BytecodeInterpreter(VirtualMachine vm, ClassFile klass) {
+    public BytecodeInterpreter(VirtualMachine vm, Value.Class klass) {
         this.vm = vm;
         this.klass = klass;
         this.stack = new ArrayDeque<>();
@@ -48,8 +48,14 @@ public class BytecodeInterpreter {
                 // case Bipush:
                 // case Sipush:
                 case Ldc:
-                    FieldType type = DescriptorParser.parseField("Ljava/lang/String;"); // TODO: switch on constant type
-                    stack.push(new Value(type, getConstant(instruction.getOperands()[0])));
+                    ConstantInfo constValue = getConstant(instruction.getOperands()[0]);
+                    if (constValue instanceof ConstantInfo.String) {
+                        FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
+                        stack.push(new Value(type,
+                                ((ConstantInfo.Utf8)getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
+                    } else {
+                        throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
+                    }
                     break;
                 // case Aload:
                 // case Iload_0:
@@ -98,22 +104,19 @@ public class BytecodeInterpreter {
                     return;
                 case Getstatic:
                     // TODO: fetch from actual static field
-                    ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // TODO: switch on constant type for cast
+                    ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // not used yet. TODO: switch on constant type for cast
                     ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(value.getNameAndTypeIndex());
-                    type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
+                    FieldType type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
                     stack.push(new Value(type, value));
                     break;
                 // case Putstatic:
                 // case Getfield:
                 // case Putfield:
                 case Invokevirtual:
-                    /*
-                    ConstantInfo.String str = (ConstantInfo.String)stack.pop().getValue();
-                    ConstantInfo.Utf8 utf8 = (ConstantInfo.Utf8)getConstant(str.getNameIndex());
-                    Value receiver = stack.pop();
-                    vm.getClass(receiver.getType());
-                    System.out.println(utf8.getString());
-                     */
+                    String str = (String)stack.pop().getValue();
+                    stack.pop(); // recever
+                    System.out.println(str);
+                    break;
                     // fallthrough
                 case Invokespecial:
                     // TODO: handle `protected` specially
@@ -132,7 +135,7 @@ public class BytecodeInterpreter {
                 // case Monitorexit:
                 // case Ifnull:
                 case Ifnonnull:
-                    if (stack.pop() != null) { // TODO: will we really use null as null Value?
+                    if (stack.pop().getValue() != null) {
                         pc += instruction.getIndex();
                         continue;
                     }
@@ -160,24 +163,6 @@ public class BytecodeInterpreter {
     }
 
     private ConstantInfo getConstant(int index) {
-        return klass.getConstantPool()[index - 1];
-    }
-
-    public static class Value {
-        private final FieldType type;
-        private final ConstantInfo value;
-
-        public Value(FieldType type, ConstantInfo value) {
-            this.type = type;
-            this.value = value;
-        }
-
-        public FieldType getType() {
-            return type;
-        }
-
-        public ConstantInfo getValue() {
-            return value;
-        }
+        return klass.getClassFile().getConstantPool()[index - 1];
     }
 }
