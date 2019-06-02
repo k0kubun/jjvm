@@ -37,16 +37,61 @@ public class BytecodeInterpreter {
             Opcode opcode = instruction.getOpcode();
 
             switch (opcode) {
+                // Nop
+                // Aconst_Null
+                // Iconst_M1
+                // Iconst_0
+                // Iconst_1
+                // Bipush
+                // Sipush
+                case Ldc:
+                    FieldType type = DescriptorParser.parseField("Ljava/lang/String;"); // TODO: switch on constant type
+                    stack.push(new Value(type, getConstant(instruction.getOperands()[0])));
+                    break;
+                // Aload
+                // Iload_0
+                // Iload_1
+                // Iload_2
+                // Iload_3
+                // Lload_1
+                // Fload_1
+                // Dload_1
+                // Dload_2
+                // Aload_0
+                // Aload_1
+                // Aload_2
+                // Aload_3
+                // Caload
+                // Istore_3
+                // Astore_0
+                // Astore_1
+                // Astore_2
+                // Astore_3
+                // Astore
+                // Pop
+                // Dup
+                // Ior
+                // Iinc
+                // Ifeq
+                // Ifne
+                // Iflt
+                // IfIcmpeq
+                // IfIcmpge
+                // IfAcmpeq
+                // Goto
+                // Ireturn
+                // Areturn
+                case Return:
+                    return;
                 case Getstatic:
                     ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // TODO: switch on constant type
                     ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(value.getNameAndTypeIndex());
-                    FieldType type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
+                    type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
                     stack.push(new Value(type, value));
                     break;
-                case Ldc:
-                    type = DescriptorParser.parseField("Ljava/lang/String;"); // TODO: switch on constant type
-                    stack.push(new Value(type, getConstant(instruction.getOperands()[0])));
-                    break;
+                // Putstatic
+                // Getfield
+                // Putfield
                 case Invokevirtual:
                     /*
                     ConstantInfo.String str = (ConstantInfo.String)stack.pop().getValue();
@@ -69,8 +114,18 @@ public class BytecodeInterpreter {
 
                     vm.callMethod(methodName, methodType, recv, args);
                     break;
-                case Return:
-                    return;
+                // Invokespecial
+                // Invokestatic
+                // Invokeinterface
+                // New
+                // Arraylength
+                // Athrow
+                // Checkcast
+                // Instanceof
+                // Monitorenter
+                // Monitorexit
+                // Ifnull
+                // Ifnonnull
                 default:
                     throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
             }

@@ -126,7 +126,7 @@ public class ClassFileDisassembler {
             builder.append(String.format("  stack=%d, locals=%d, args_size=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals(), argsSize));
             int pos = 0;
             for (Instruction instruction : codeAttribute.getInstructions()) {
-                builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction)));
+                builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction, pos)));
                 pos += 1 + instruction.getOpcode().getArgc();
             }
             for (AttributeInfo attr : codeAttribute.getAttributes()) {
@@ -146,32 +146,38 @@ public class ClassFileDisassembler {
         return builder.toString();
     }
 
-    private String disassembleInstruction(Instruction instruction) {
+    private String disassembleInstruction(Instruction instruction, int pos) {
         Opcode opcode = instruction.getOpcode();
         String name = opcode.getName();
 
-        if (opcode == Opcode.Ldc
-                || opcode == Opcode.Getstatic
-                || opcode == Opcode.Invokevirtual
-                || opcode == Opcode.Invokespecial) {
-            int index;
-            if (opcode == Opcode.Ldc) {
-                index = instruction.getOperands()[0];
-            } else {
-                index = instruction.getIndex();
-            }
-            ConstantInfo info = constant(index);
+        switch (opcode) {
+            case Ldc:
+            case Getstatic:
+            case Invokevirtual:
+            case Invokespecial:
+                int index;
+                switch (opcode) {
+                    case Ldc:
+                        index = instruction.getOperands()[0];
+                        break;
+                    default:
+                        index = instruction.getIndex();
+                        break;
+                }
+                ConstantInfo info = constant(index);
 
-            String label = getConstantLabel(info);
-            if (label == null)
-                label = "[TODO]";
-            return String.format("%-13s #%-19d// %s %s",
-                    name,
-                    index,
-                    info.getType().toString().replaceFirst("ref\\z", ""),
-                    label);
-        } else {
-            return name;
+                String label = getConstantLabel(info);
+                if (label == null)
+                    label = "[TODO]";
+                return String.format("%-13s #%-19d// %s %s",
+                        name,
+                        index,
+                        info.getType().toString().replaceFirst("ref\\z", ""),
+                        label);
+            case Goto:
+                return String.format("%-13s %d", name, pos + instruction.getIndex());
+            default:
+                return name;
         }
     }
 
