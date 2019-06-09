@@ -17,11 +17,8 @@ public class JJVM {
             return;
         }
 
-        ClassFile classFile;
-        try {
-            classFile = new ClassFileParser().parse(args[0]);
-        } catch (IOException e) {
-            System.out.println("Failed to open: " + e.getMessage());
+        ClassFile classFile = readClassFile(args[0]);
+        if (classFile == null) {
             return;
         }
 
@@ -29,5 +26,14 @@ public class JJVM {
         Value.Class klass = vm.loadClass(classFile);
         Descriptor mainMethod = DescriptorParser.parseMethod("([Ljava/lang/String;)V");
         vm.callStaticMethod(klass, "main", mainMethod, new Value[]{}); // TODO: pass rest args
+    }
+
+    private static ClassFile readClassFile(String path) {
+        try {
+            return new ClassFileParser().parse(path);
+        } catch (IOException e) {
+            System.out.println("Failed to open: " + e.getMessage());
+            return null;
+        }
     }
 }

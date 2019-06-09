@@ -1,7 +1,6 @@
 package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.ClassFile;
-import com.github.k0kubun.jjvm.classfile.ConstantInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 
 import java.util.HashMap;

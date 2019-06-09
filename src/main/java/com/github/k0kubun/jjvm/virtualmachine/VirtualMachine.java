@@ -33,15 +33,15 @@ public class VirtualMachine {
     }
 
     // Call an instance method
-    public void callMethod(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+    public Value callMethod(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         Value.Class klass = getClass(args[0].getType());
         MethodInfo method = searchMethod(klass, methodName, methodType);
-        executeMethod(klass, method, args);
+        return executeMethod(klass, method, args);
     }
 
-    public void callStaticMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+    public Value callStaticMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         MethodInfo method = searchMethod(klass, methodName, methodType);
-        executeMethod(klass, method, args);
+        return executeMethod(klass, method, args);
     }
 
     public Value.Class getClass(String name) {
@@ -90,8 +90,8 @@ public class VirtualMachine {
                 klass.getClassFile().getThisClassName(), methodName, methodType.toString()));
     }
 
-    private void executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
+    private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        new BytecodeInterpreter(this, klass).execute(code, args);
+        return new BytecodeInterpreter(this, klass).execute(code, args);
     }
 }

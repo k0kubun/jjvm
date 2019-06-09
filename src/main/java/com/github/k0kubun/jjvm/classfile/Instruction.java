@@ -49,10 +49,10 @@ public class Instruction {
         //Ldc2_W(0x14, 2), // indexbyte1, indexbyte2
 
         // === Loads ===
-        //Iload(0x15, ),
-        //Lload(0x16, ),
-        //Fload(0x17, ),
-        //Dload(0x18, ),
+        Iload(0x15, 1), // index
+        //Lload(0x16, 1), // index
+        //Fload(0x17, 1), // index
+        //Dload(0x18, 1), // index
         Aload(0x19, 1), // index
         Iload_0(0x1a, 0),
         Iload_1(0x1b, 0),
@@ -83,10 +83,10 @@ public class Instruction {
         //Saload(0x35, ),
 
         // === Stores ===
-        //Istore(0x36, ),
-        //Lstore(0x37, ),
-        //Fstore(0x38, ),
-        //Dstore(0x39, ),
+        Istore(0x36, 1), // index
+        //Lstore(0x37, 1), // index
+        //Fstore(0x38, 1), // index
+        //Dstore(0x39, 1), // index
         Astore(0x3a, 1), // index
         Istore_0(0x3b, 0),
         Istore_1(0x3c, 0),

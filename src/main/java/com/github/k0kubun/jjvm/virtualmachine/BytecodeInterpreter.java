@@ -16,7 +16,6 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.stream.Stream;
 
 // The core of the VirtualMachine.
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
@@ -33,7 +32,7 @@ public class BytecodeInterpreter {
         this.pc = 0;
     }
 
-    public void execute(AttributeInfo.Code code, Value[] methodArgs) {
+    public Value execute(AttributeInfo.Code code, Value[] methodArgs) {
         Value[] locals = new Value[code.getMaxLocals()];
         for (int i = 0; i < methodArgs.length; i++) {
             locals[i] = methodArgs[i];
@@ -89,27 +88,30 @@ public class BytecodeInterpreter {
                     break;
                 // case Ldc_W:
                 // case Ldc2_W:
-                // case Iload:
+                case Iload:
+                    stack.push(locals[instruction.getOperands()[0]]);
+                    break;
                 // case Lload:
                 // case Fload:
                 // case Dload:
                 // case Aload:
-                // case Iload_0:
-                // case Iload_3:
                 // case Lload_1:
                 // case Fload_1:
                 // case Dload_1:
                 // case Dload_2:
-                case Aload_0:
                 case Iload_0:
+                case Aload_0:
                     stack.push(locals[0]);
                     break;
-                case Aload_1:
                 case Iload_1:
+                case Aload_1:
                     stack.push(locals[1]);
                     break;
                 case Iload_2:
                     stack.push(locals[2]);
+                    break;
+                case Iload_3:
+                    stack.push(locals[3]);
                     break;
                 // case Aload_2:
                 // case Aload_3:
@@ -121,23 +123,27 @@ public class BytecodeInterpreter {
                 // case Baload:
                 // case Caload:
                 // case Saload:
-                // case Istore:
+                case Istore:
+                    locals[instruction.getOperands()[0]] = stack.pop();
+                    break;
                 // case Lstore:
                 // case Fstore:
                 // case Dstore:
                 // case Astore:
-                // case Istore_3:
                 // case Astore_0:
                 case Istore_0:
                     locals[0] = stack.pop();
                     break;
-                case Astore_1:
                 case Istore_1:
+                case Astore_1:
                     locals[1] = stack.pop();
                     break;
-                case Astore_2:
                 case Istore_2:
+                case Astore_2:
                     locals[2] = stack.pop();
+                    break;
+                case Istore_3:
+                    locals[3] = stack.pop();
                     break;
                 // case Astore_3:
                 // case Iastore:
@@ -237,13 +243,14 @@ public class BytecodeInterpreter {
                 // case Ret:
                 // case Tableswitch:
                 // case Lookupswitch:
-                // case Ireturn:
+                case Ireturn:
+                    return stack.pop();
                 // case Lreturn:
                 // case Freturn:
                 // case Dreturn:
                 // case Areturn:
                 case Return:
-                    return;
+                    return null;
                 case Getstatic:
                     Fieldref field = getConstant(instruction.getIndex());
                     NameAndType nameAndType = getConstant(field.getNameAndTypeIndex());
@@ -262,7 +269,7 @@ public class BytecodeInterpreter {
                         // Stub PrintStream#println implementation for now
                         System.out.println(args[1].getValue());
                     } else {
-                        vm.callMethod(methodName, methodType, args);
+                        pushIfNotNull(vm.callMethod(methodName, methodType, args));
                     }
                     break;
                 case Invokespecial:
@@ -270,13 +277,13 @@ public class BytecodeInterpreter {
                     methodName = getMethodName(instruction.getIndex());
                     methodType = getMethodType(instruction.getIndex());
                     args = popStack(methodType.getParameters().size() + 1); // including receiver
-                    vm.callMethod(methodName, methodType, args);
+                    pushIfNotNull(vm.callMethod(methodName, methodType, args));
                     break;
                 case Invokestatic:
                     methodName = getMethodName(instruction.getIndex());
                     methodType = getMethodType(instruction.getIndex());
                     args = popStack(methodType.getParameters().size());
-                    vm.callStaticMethod(thisClass, methodName, methodType, args);
+                    pushIfNotNull(vm.callStaticMethod(thisClass, methodName, methodType, args));
                     break;
                 // case Invokeinterface:
                 // case Invokedynamic:
@@ -307,6 +314,13 @@ public class BytecodeInterpreter {
             }
 
             pc++;
+        }
+    }
+
+    // XXX: do we need to verify return type is void?
+    private void pushIfNotNull(Value val) {
+        if (val != null) {
+            stack.push(val);
         }
     }
 
