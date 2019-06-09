@@ -20,15 +20,15 @@ public class Int {
     private static int minus() {
         int num1 = -1;
         int num2 = 3;
-        int num3 = 4;
+        int num3 = 0;
         int result = num1 - num2 - num3;
         System.out.println(result);
         return result;
     }
 
     private static int mult() {
-        int num1 = 5;
-        int num2 = 3;
+        int num1 = 4;
+        int num2 = 5;
         int result = num1 * num2;
         System.out.println(result);
         return result;

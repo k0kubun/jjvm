@@ -49,7 +49,9 @@ public class BytecodeInterpreter {
                 case Iconst_M1:
                     stack.push(new Value(new FieldType.Int(), -1));
                     break;
-                // case Iconst_0:
+                case Iconst_0:
+                    stack.push(new Value(new FieldType.Int(), 0));
+                    break;
                 case Iconst_1:
                     stack.push(new Value(new FieldType.Int(), 1));
                     break;
