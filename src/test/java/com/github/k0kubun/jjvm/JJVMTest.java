@@ -3,6 +3,7 @@ package com.github.k0kubun.jjvm;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -16,17 +17,23 @@ public class JJVMTest {
     private static String BASE_PATH = "test/";
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         CommandResult result = runCommand("./gradlew", "installDist");
         assertEquals(0, result.status);
     }
 
     @Test
-    public void testHello() throws IOException {
+    public void testHello() {
         testJJVM("Hello");
     }
 
-    private void testJJVM(String klass) throws IOException {
+    @Test
+    @Ignore
+    public void testCalc() {
+        testJJVM("Calc");
+    }
+
+    private void testJJVM(String klass) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);
 
@@ -41,14 +48,19 @@ public class JJVMTest {
         assertEquals(java.stderr, jjvm.stderr);
     }
 
-    private static CommandResult runCommand(String exec, String... args) throws IOException {
+    private static CommandResult runCommand(String exec, String... args) {
         ProcessBuilder processBuilder = new ProcessBuilder();
 
         List<String> command = new ArrayList<>();
         command.add(exec);
         command.addAll(Arrays.asList(args));
         processBuilder.command(command);
-        Process process = processBuilder.start();
+        Process process;
+        try {
+            process = processBuilder.start();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to start process: " + e.toString());
+        }
 
         BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -56,14 +68,18 @@ public class JJVMTest {
         StringBuilder stderr = new StringBuilder();
         String outLine;
         String errLine = null;
-        while ((outLine = outReader.readLine()) != null || (errLine = errReader.readLine()) != null) {
-            if (outLine != null) {
-                stdout.append(outLine);
+        try {
+            while ((outLine = outReader.readLine()) != null || (errLine = errReader.readLine()) != null) {
+                if (outLine != null) {
+                    stdout.append(outLine);
+                }
+                if (errLine != null) {
+                    stderr.append(errLine);
+                    errLine = null;
+                }
             }
-            if (errLine != null) {
-                stderr.append(errLine);
-                errLine = null;
-            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read output: " + e.toString());
         }
 
         int status;

@@ -17,13 +17,13 @@ application {
     mainClassName = project.jjvmClass
 }
 
-task jjvm(type: Exec, dependsOn: [build]) {
+task jjvm(type: Exec, dependsOn: [assemble]) {
     commandLine(*['java', '-cp', sourceSets.main.runtimeClasspath.join(':'), project.jjvmClass, *project.args])
     group = 'JJVM'
     description = 'Run a classfile'
 }
 
-task jjvmp(type: Exec, dependsOn: [build]) {
+task jjvmp(type: Exec, dependsOn: [assemble]) {
     commandLine(*['java', '-cp', sourceSets.main.runtimeClasspath.join(':'), project.jjvmpClass, *project.args])
     group = 'JJVM'
     description = 'Disassemble a classfile'

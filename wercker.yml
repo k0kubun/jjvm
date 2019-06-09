@@ -19,4 +19,4 @@ build:
       cache_project_cache: true
     - script:
       name: test
-      code: ./gradlew test
+      code: ./gradlew test --info
