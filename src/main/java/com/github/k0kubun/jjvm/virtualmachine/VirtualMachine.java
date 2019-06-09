@@ -2,6 +2,7 @@ package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
 import com.github.k0kubun.jjvm.classfile.ClassFile;
+import com.github.k0kubun.jjvm.classfile.ClassFileParser;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
@@ -19,6 +20,8 @@ public class VirtualMachine {
         classLoader = new ClassLoader();
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
+
+        callInitializeSystemClass();
     }
 
     // Load a ClassFile which is not loaded yet
@@ -37,6 +40,10 @@ public class VirtualMachine {
         Value.Class klass = classMap.get(className);
         MethodInfo method = searchMethod(klass, methodName);
         executeMethod(klass, method, new Value[]{});
+    }
+
+    public Value.Class getClass(String name) {
+        return getClass(fieldType(String.format("L%s;", name)));
     }
 
     // Get or load a class from FieldType
@@ -59,6 +66,16 @@ public class VirtualMachine {
         ClassFile classFile = classLoader.loadClass(klass);
         loadClass(classFile);
         return new Value.Class(classFile);
+    }
+
+    // `call_initializeSystemClass` equivalent
+    private void callInitializeSystemClass() {
+        Value.Class system = classMap.get("java/lang/System");
+        system.setField("out", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
+    }
+
+    private FieldType fieldType(String type) {
+        return ClassFileParser.DescriptorParser.parseField(type);
     }
 
     private MethodInfo searchMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType) {

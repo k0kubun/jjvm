@@ -1,9 +1,12 @@
 package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
-import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo;
+import com.github.k0kubun.jjvm.classfile.ConstantInfo.Fieldref;
+import com.github.k0kubun.jjvm.classfile.ConstantInfo.Methodref;
+import com.github.k0kubun.jjvm.classfile.ConstantInfo.NameAndType;
+import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 import com.github.k0kubun.jjvm.classfile.Instruction;
@@ -52,7 +55,7 @@ public class BytecodeInterpreter {
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type,
-                                ((ConstantInfo.Utf8)getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
+                                ((Utf8)getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
                     }
@@ -103,20 +106,15 @@ public class BytecodeInterpreter {
                 case Return:
                     return;
                 case Getstatic:
-                    // TODO: fetch from actual static field
-                    ConstantInfo.Fieldref value = (ConstantInfo.Fieldref)getConstant(instruction.getIndex()); // not used yet. TODO: switch on constant type for cast
-                    ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(value.getNameAndTypeIndex());
-                    FieldType type = DescriptorParser.parseField(((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
-                    stack.push(new Value(type, value));
+                    Fieldref field = getConstant(instruction.getIndex());
+                    NameAndType nameAndType = getConstant(field.getNameAndTypeIndex());
+                    Value.Class klass = vm.getClass(getName(getConstant(field.getClassIndex())));
+                    stack.push(klass.getField(getName(nameAndType))); // XXX: do we need to check type here?
                     break;
                 // case Putstatic:
                 // case Getfield:
                 // case Putfield:
                 case Invokevirtual:
-                    String str = (String)stack.pop().getValue();
-                    stack.pop(); // recever
-                    System.out.println(str);
-                    break;
                     // fallthrough
                 case Invokespecial:
                     // TODO: handle `protected` specially
@@ -149,20 +147,31 @@ public class BytecodeInterpreter {
     }
 
     private void invokeMethod(int methodIndex) {
-        ConstantInfo.Methodref methodref = (ConstantInfo.Methodref)getConstant(methodIndex);
-        ConstantInfo.NameAndType nameAndType = (ConstantInfo.NameAndType)getConstant(methodref.getNameAndTypeIndex());
-        String methodName = ((ConstantInfo.Utf8)getConstant(nameAndType.getNameIndex())).getString();
+        Methodref methodref = getConstant(methodIndex);
+        NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
+        String methodName = getName(nameAndType);
         MethodInfo.Descriptor methodType = DescriptorParser.parseMethod(
-                ((ConstantInfo.Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
+                ((Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
 
         Value[] args = new Value[methodType.getParameters().size() + 1]; // including receiver
         for (int i = 0; i < args.length; i++) {
             args[args.length - 1 - i] = stack.pop();
         }
-        vm.callMethod(methodName, methodType, args);
+
+        if (args[0].getType().getType().equals("java.io.PrintStream") && methodName.equals("println") && args.length == 2) {
+            // Stub PrintStream#println implementation for now
+            System.out.println(args[1].getValue());
+        } else {
+            vm.callMethod(methodName, methodType, args);
+        }
     }
 
-    private ConstantInfo getConstant(int index) {
-        return klass.getClassFile().getConstantPool()[index - 1];
+    private String getName(ConstantInfo.NamedInfo constant) {
+        return ((ConstantInfo.Utf8)getConstant(constant.getNameIndex())).getString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends ConstantInfo> T getConstant(int index) {
+        return (T)klass.getClassFile().getConstantPool()[index - 1];
     }
 }

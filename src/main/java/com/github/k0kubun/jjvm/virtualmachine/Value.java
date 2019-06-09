@@ -48,6 +48,14 @@ public class Value {
         public ClassFile getClassFile() {
             return classFile;
         }
+
+        public Value getField(String field) {
+            return fields.get(field);
+        }
+
+        public void setField(String field, Value value) {
+            fields.put(field, value);
+        }
     }
 
     // A non-native class (native: Integer, String, ...) uses Value.Object to represent

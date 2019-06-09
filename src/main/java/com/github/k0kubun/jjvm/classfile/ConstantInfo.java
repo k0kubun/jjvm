@@ -143,7 +143,7 @@ public class ConstantInfo {
         }
     }
 
-    public static class NameAndType extends ConstantInfo {
+    public static class NameAndType extends ConstantInfo implements NamedInfo {
         private final int nameIndex;
         private final int descriptorIndex;
 
@@ -153,6 +153,7 @@ public class ConstantInfo {
             this.descriptorIndex = descriptorIndex;
         }
 
+        @Override
         public int getNameIndex() {
             return nameIndex;
         }
