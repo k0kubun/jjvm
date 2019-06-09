@@ -18,6 +18,7 @@ public class VirtualMachine {
     public VirtualMachine() {
         classMap = new HashMap<>();
         classLoader = new ClassLoader();
+
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
 

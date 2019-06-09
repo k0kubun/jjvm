@@ -54,7 +54,7 @@ public class Instruction {
         Iconst_1(0x04, 0),
         Iconst_2(0x05, 0),
         Iconst_3(0x06, 0),
-        //Iconst_4(0x07, 0),
+        Iconst_4(0x07, 0),
         //Iconst_5(0x08, 0),
         Bipush(0x10, 1), // byte
         Sipush(0x11, 2), // byte1, byte2
@@ -205,6 +205,7 @@ public class Instruction {
         // 131 (0x83)    lxor
         // 132 (0x84)    iinc
         Iadd(0x60, 0),
+        Isub(0x64, 0),
         Ior(0x80, 0),
         Iinc(0x84, 2), // index, const
 

@@ -13,8 +13,10 @@ import com.github.k0kubun.jjvm.classfile.Instruction;
 import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.Stream;
 
 // The core of the VirtualMachine.
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
@@ -45,7 +47,9 @@ public class BytecodeInterpreter {
             switch (opcode) {
                 // case Nop:
                 // case Aconst_Null:
-                // case Iconst_M1:
+                case Iconst_M1:
+                    stack.push(new Value(new FieldType.Int(), -1));
+                    break;
                 // case Iconst_0:
                 case Iconst_1:
                     stack.push(new Value(new FieldType.Int(), 1));
@@ -53,7 +57,12 @@ public class BytecodeInterpreter {
                 case Iconst_2:
                     stack.push(new Value(new FieldType.Int(), 2));
                     break;
-                // case Iconst_3:
+                case Iconst_3:
+                    stack.push(new Value(new FieldType.Int(), 3));
+                    break;
+                case Iconst_4:
+                    stack.push(new Value(new FieldType.Int(), 4));
+                    break;
                 // case Bipush:
                 // case Sipush:
                 case Ldc:
@@ -107,9 +116,12 @@ public class BytecodeInterpreter {
                     stack.push(stack.getFirst());
                     break;
                 case Iadd:
-                    int right = (int)stack.pop().getValue();
-                    int left = (int)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Int(), right + left));
+                    int[] ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] + ints[1]));
+                    break;
+                case Isub:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] - ints[1]));
                     break;
                 // case Ior:
                 // case Iinc:
@@ -181,6 +193,10 @@ public class BytecodeInterpreter {
 
             pc++;
         }
+    }
+
+    private int[] popInts(int size) {
+        return Arrays.stream(popStack(size)).mapToInt(v -> (int)v.getValue()).toArray();
     }
 
     private Value[] popStack(int size) {
