@@ -27,8 +27,8 @@ public class JJVMTest {
     }
 
     @Test
-    public void testCalc() {
-        testJJVM("Calc");
+    public void testInt() {
+        testJJVM("Int");
     }
 
     private void testJJVM(String klass) {
