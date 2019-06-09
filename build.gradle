@@ -1,8 +1,17 @@
 apply plugin: 'application'
+apply plugin: 'maven'
 
 project.ext.jjvmClass  = 'com.github.k0kubun.jjvm.JJVM'
 project.ext.jjvmpClass = 'com.github.k0kubun.jjvm.Disassembler'
 project.ext.args = project.findProperty('args') ? project.args.split('\\s+') : []
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
 
 application {
     mainClassName = project.jjvmClass
