@@ -47,7 +47,13 @@ public class BytecodeInterpreter {
                 // case Aconst_Null:
                 // case Iconst_M1:
                 // case Iconst_0:
-                // case Iconst_1:
+                case Iconst_1:
+                    stack.push(new Value(new FieldType.Int(), 1));
+                    break;
+                case Iconst_2:
+                    stack.push(new Value(new FieldType.Int(), 2));
+                    break;
+                // case Iconst_3:
                 // case Bipush:
                 // case Sipush:
                 case Ldc:
@@ -62,8 +68,6 @@ public class BytecodeInterpreter {
                     break;
                 // case Aload:
                 // case Iload_0:
-                // case Iload_1:
-                // case Iload_2:
                 // case Iload_3:
                 // case Lload_1:
                 // case Fload_1:
@@ -72,17 +76,23 @@ public class BytecodeInterpreter {
                 case Aload_0:
                     stack.push(locals[0]);
                     break;
+                case Iload_1:
                 case Aload_1:
                     stack.push(locals[1]);
+                    break;
+                case Iload_2:
+                    stack.push(locals[2]);
                     break;
                 // case Aload_2:
                 // case Aload_3:
                 // case Caload:
                 // case Istore_3:
                 // case Astore_0:
+                case Istore_1:
                 case Astore_1:
                     locals[1] = stack.pop();
                     break;
+                case Istore_2:
                 case Astore_2:
                     locals[2] = stack.pop();
                     break;
@@ -91,6 +101,11 @@ public class BytecodeInterpreter {
                 // case Pop:
                 case Dup:
                     stack.push(stack.getFirst());
+                    break;
+                case Iadd:
+                    int right = (int)stack.pop().getValue();
+                    int left = (int)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Int(), right + left));
                     break;
                 // case Ior:
                 // case Iinc:

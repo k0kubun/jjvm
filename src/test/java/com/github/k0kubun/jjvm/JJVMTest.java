@@ -3,7 +3,6 @@ package com.github.k0kubun.jjvm;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -28,7 +27,6 @@ public class JJVMTest {
     }
 
     @Test
-    @Ignore
     public void testCalc() {
         testJJVM("Calc");
     }

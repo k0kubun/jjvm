@@ -52,10 +52,10 @@ public class Instruction {
         Iconst_M1(0x02, 0),
         Iconst_0(0x03, 0),
         Iconst_1(0x04, 0),
-        //Iconst2(0x05, 0),
-        //Iconst3(0x06, 0),
-        //Iconst4(0x07, 0),
-        //Iconst5(0x08, 0),
+        Iconst_2(0x05, 0),
+        Iconst_3(0x06, 0),
+        //Iconst_4(0x07, 0),
+        //Iconst_5(0x08, 0),
         Bipush(0x10, 1), // byte
         Sipush(0x11, 2), // byte1, byte2
         Ldc(0x12, 1), // index
@@ -143,6 +143,8 @@ public class Instruction {
         // 84 (0x54)    bastore
         // 85 (0x55)    castore
         // 86 (0x56)    sastore
+        Istore_1(0x3c, 0),
+        Istore_2(0x3d, 0),
         Istore_3(0x3e, 0),
         Astore_0(0x4b, 0),
         Astore_1(0x4c, 0),
@@ -201,6 +203,7 @@ public class Instruction {
         // 130 (0x82)    ixor
         // 131 (0x83)    lxor
         // 132 (0x84)    iinc
+        Iadd(0x60, 0),
         Ior(0x80, 0),
         Iinc(0x84, 2), // index, const
 
