@@ -319,7 +319,7 @@ public class Instruction {
                     return opcode;
                 }
             }
-            throw new RuntimeException(String.format("Opcode is not defined for code: %02x", code));
+            throw new RuntimeException(String.format("Opcode is not defined for code: 0x%02x", code));
         }
     }
 }
