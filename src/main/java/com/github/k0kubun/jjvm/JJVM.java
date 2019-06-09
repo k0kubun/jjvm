@@ -2,6 +2,9 @@ package com.github.k0kubun.jjvm;
 
 import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser;
+import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
+import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
+import com.github.k0kubun.jjvm.virtualmachine.Value;
 import com.github.k0kubun.jjvm.virtualmachine.VirtualMachine;
 
 import java.io.IOException;
@@ -23,7 +26,8 @@ public class JJVM {
         }
 
         VirtualMachine vm = new VirtualMachine();
-        vm.loadClass(classFile);
-        vm.callStaticMethod(classFile.getThisClassName(), "main");
+        Value.Class klass = vm.loadClass(classFile);
+        Descriptor mainMethod = DescriptorParser.parseMethod("([Ljava/lang/String;)V");
+        vm.callStaticMethod(klass, "main", mainMethod, new Value[]{}); // TODO: pass rest args
     }
 }

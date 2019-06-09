@@ -10,7 +10,7 @@ import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 import com.github.k0kubun.jjvm.classfile.Instruction;
-import com.github.k0kubun.jjvm.classfile.MethodInfo;
+import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -20,13 +20,13 @@ import java.util.List;
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
 public class BytecodeInterpreter {
     private final VirtualMachine vm;
-    private final Value.Class klass;
+    private final Value.Class thisClass;
     private int pc; // program counter
     private final Deque<Value> stack;
 
     public BytecodeInterpreter(VirtualMachine vm, Value.Class klass) {
         this.vm = vm;
-        this.klass = klass;
+        this.thisClass = klass;
         this.stack = new ArrayDeque<>();
         this.pc = 0;
     }
@@ -74,10 +74,11 @@ public class BytecodeInterpreter {
                 // case Dload_1:
                 // case Dload_2:
                 case Aload_0:
+                case Iload_0:
                     stack.push(locals[0]);
                     break;
-                case Iload_1:
                 case Aload_1:
+                case Iload_1:
                     stack.push(locals[1]);
                     break;
                 case Iload_2:
@@ -88,12 +89,15 @@ public class BytecodeInterpreter {
                 // case Caload:
                 // case Istore_3:
                 // case Astore_0:
-                case Istore_1:
+                case Istore_0:
+                    locals[0] = stack.pop();
+                    break;
                 case Astore_1:
+                case Istore_1:
                     locals[1] = stack.pop();
                     break;
-                case Istore_2:
                 case Astore_2:
+                case Istore_2:
                     locals[2] = stack.pop();
                     break;
                 // case Astore_3:
@@ -130,12 +134,30 @@ public class BytecodeInterpreter {
                 // case Getfield:
                 // case Putfield:
                 case Invokevirtual:
-                    // fallthrough
+                    String methodName = getMethodName(instruction.getIndex());
+                    Descriptor methodType = getMethodType(instruction.getIndex());
+                    Value[] args = popStack(methodType.getParameters().size() + 1); // including receiver
+
+                    if (args[0].getType().getType().equals("java.io.PrintStream") && methodName.equals("println") && args.length == 2) {
+                        // Stub PrintStream#println implementation for now
+                        System.out.println(args[1].getValue());
+                    } else {
+                        vm.callMethod(methodName, methodType, args);
+                    }
+                    break;
                 case Invokespecial:
                     // TODO: handle `protected` specially
-                    invokeMethod(instruction.getIndex());
+                    methodName = getMethodName(instruction.getIndex());
+                    methodType = getMethodType(instruction.getIndex());
+                    args = popStack(methodType.getParameters().size() + 1); // including receiver
+                    vm.callMethod(methodName, methodType, args);
                     break;
-                // case Invokestatic:
+                case Invokestatic:
+                    methodName = getMethodName(instruction.getIndex());
+                    methodType = getMethodType(instruction.getIndex());
+                    args = popStack(methodType.getParameters().size());
+                    vm.callStaticMethod(thisClass, methodName, methodType, args);
+                    break;
                 // case Invokeinterface:
                 // case New:
                 // case Arraylength:
@@ -161,24 +183,25 @@ public class BytecodeInterpreter {
         }
     }
 
-    private void invokeMethod(int methodIndex) {
+    private Value[] popStack(int size) {
+        Value[] values = new Value[size];
+        for (int i = 0; i < values.length; i++) {
+            values[values.length - 1 - i] = stack.pop();
+        }
+        return values;
+    }
+
+    private String getMethodName(int methodIndex) {
         Methodref methodref = getConstant(methodIndex);
         NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
-        String methodName = getName(nameAndType);
-        MethodInfo.Descriptor methodType = DescriptorParser.parseMethod(
+        return getName(nameAndType);
+    }
+
+    private Descriptor getMethodType(int methodIndex) {
+        Methodref methodref = getConstant(methodIndex);
+        NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
+        return DescriptorParser.parseMethod(
                 ((Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
-
-        Value[] args = new Value[methodType.getParameters().size() + 1]; // including receiver
-        for (int i = 0; i < args.length; i++) {
-            args[args.length - 1 - i] = stack.pop();
-        }
-
-        if (args[0].getType().getType().equals("java.io.PrintStream") && methodName.equals("println") && args.length == 2) {
-            // Stub PrintStream#println implementation for now
-            System.out.println(args[1].getValue());
-        } else {
-            vm.callMethod(methodName, methodType, args);
-        }
     }
 
     private String getName(ConstantInfo.NamedInfo constant) {
@@ -187,6 +210,6 @@ public class BytecodeInterpreter {
 
     @SuppressWarnings("unchecked")
     private <T extends ConstantInfo> T getConstant(int index) {
-        return (T)klass.getClassFile().getConstantPool()[index - 1];
+        return (T)thisClass.getClassFile().getConstantPool()[index - 1];
     }
 }

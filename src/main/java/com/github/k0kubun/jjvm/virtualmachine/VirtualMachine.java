@@ -25,8 +25,10 @@ public class VirtualMachine {
     }
 
     // Load a ClassFile which is not loaded yet
-    public void loadClass(ClassFile classFile) {
-        classMap.put(classFile.getThisClassName(), new Value.Class(classFile));
+    public Value.Class loadClass(ClassFile classFile) {
+        Value.Class klass = new Value.Class(classFile);
+        classMap.put(classFile.getThisClassName(), klass);
+        return klass;
     }
 
     // Call an instance method
@@ -36,10 +38,9 @@ public class VirtualMachine {
         executeMethod(klass, method, args);
     }
 
-    public void callStaticMethod(String className, String methodName) {
-        Value.Class klass = classMap.get(className);
-        MethodInfo method = searchMethod(klass, methodName);
-        executeMethod(klass, method, new Value[]{});
+    public void callStaticMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+        MethodInfo method = searchMethod(klass, methodName, methodType);
+        executeMethod(klass, method, args);
     }
 
     public Value.Class getClass(String name) {
@@ -86,16 +87,6 @@ public class VirtualMachine {
         }
         throw new RuntimeException(String.format("NoMethodError: %s.%s (%s)",
                 klass.getClassFile().getThisClassName(), methodName, methodType.toString()));
-    }
-
-    // deprecated
-    private MethodInfo searchMethod(Value.Class klass, String methodName) {
-        for (MethodInfo method : klass.getClassFile().getMethods()) {
-            if (method.getName().equals(methodName)) {
-                return method;
-            }
-        }
-        throw new RuntimeException("NoMethodError: " + klass.getClassFile().getThisClassName() + "." + methodName);
     }
 
     private void executeMethod(Value.Class klass, MethodInfo method, Value[] args) {

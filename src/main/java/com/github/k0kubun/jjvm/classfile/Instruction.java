@@ -143,6 +143,7 @@ public class Instruction {
         // 84 (0x54)    bastore
         // 85 (0x55)    castore
         // 86 (0x56)    sastore
+        Istore_0(0x3b, 0),
         Istore_1(0x3c, 0),
         Istore_2(0x3d, 0),
         Istore_3(0x3e, 0),
