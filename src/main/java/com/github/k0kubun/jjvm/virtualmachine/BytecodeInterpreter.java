@@ -68,14 +68,20 @@ public class BytecodeInterpreter {
                     stack.push(new Value(new FieldType.Int(), 5));
                     break;
                 case Lconst_0:
-                    stack.push(new Value(new FieldType.Long(), 0l));
+                    stack.push(new Value(new FieldType.Long(), 0L));
                     break;
                 case Lconst_1:
-                    stack.push(new Value(new FieldType.Long(), 1l));
+                    stack.push(new Value(new FieldType.Long(), 1L));
                     break;
-                // case Fconst_0:
-                // case Fconst_1:
-                // case Fconst_2:
+                case Fconst_0:
+                    stack.push(new Value(new FieldType.Long(), 0F));
+                    break;
+                case Fconst_1:
+                    stack.push(new Value(new FieldType.Float(), 1F));
+                    break;
+                case Fconst_2:
+                    stack.push(new Value(new FieldType.Float(), 2F));
+                    break;
                 // case Dconst_0:
                 // case Dconst_1:
                 case Bipush:
@@ -87,7 +93,9 @@ public class BytecodeInterpreter {
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type,
-                                ((Utf8)getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
+                                ((Utf8) getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
+                    } else if (constValue instanceof ConstantInfo.Float) {
+                        stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
                     }
@@ -103,30 +111,33 @@ public class BytecodeInterpreter {
                     break;
                 case Iload:
                 case Lload:
+                case Fload:
                     stack.push(locals[instruction.getOperands()[0]]);
                     break;
-                // case Fload:
                 // case Dload:
                 // case Aload:
-                // case Fload_1:
                 // case Dload_1:
                 // case Dload_2:
                 case Iload_0:
                 case Aload_0:
                 case Lload_0:
+                case Fload_0:
                     stack.push(locals[0]);
                     break;
                 case Iload_1:
                 case Aload_1:
                 case Lload_1:
+                case Fload_1:
                     stack.push(locals[1]);
                     break;
                 case Iload_2:
                 case Lload_2:
+                case Fload_2:
                     stack.push(locals[2]);
                     break;
                 case Iload_3:
                 case Lload_3:
+                case Fload_3:
                     stack.push(locals[3]);
                     break;
                 // case Aload_2:
@@ -141,28 +152,32 @@ public class BytecodeInterpreter {
                 // case Saload:
                 case Istore:
                 case Lstore:
+                case Fstore:
                     locals[instruction.getOperands()[0]] = stack.pop();
                     break;
-                // case Fstore:
                 // case Dstore:
                 // case Astore:
                 // case Astore_0:
                 case Istore_0:
                 case Lstore_0:
+                case Fstore_0:
                     locals[0] = stack.pop();
                     break;
                 case Istore_1:
                 case Astore_1:
                 case Lstore_1:
+                case Fstore_1:
                     locals[1] = stack.pop();
                     break;
                 case Istore_2:
                 case Astore_2:
                 case Lstore_2:
+                case Fstore_2:
                     locals[2] = stack.pop();
                     break;
                 case Istore_3:
                 case Lstore_3:
+                case Fstore_3:
                     locals[3] = stack.pop();
                     break;
                 // case Astore_3:
@@ -193,7 +208,10 @@ public class BytecodeInterpreter {
                     long[] longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] + longs[1]));
                     break;
-                // case Fadd:
+                case Fadd:
+                    float[] floats = popFloats(2);
+                    stack.push(new Value(new FieldType.Float(), floats[0] + floats[1]));
+                    break;
                 // case Dadd:
                 case Isub:
                     ints = popInts(2);
@@ -203,7 +221,10 @@ public class BytecodeInterpreter {
                     longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] - longs[1]));
                     break;
-                // case Fsub:
+                case Fsub:
+                    floats = popFloats(2);
+                    stack.push(new Value(new FieldType.Float(), floats[0] - floats[1]));
+                    break;
                 // case Dsub:
                 case Imul:
                     ints = popInts(2);
@@ -213,7 +234,10 @@ public class BytecodeInterpreter {
                     longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] * longs[1]));
                     break;
-                // case Fmul:
+                case Fmul:
+                    floats = popFloats(2);
+                    stack.push(new Value(new FieldType.Float(), floats[0] * floats[1]));
+                    break;
                 // case Dmul:
                 case Idiv:
                     ints = popInts(2);
@@ -223,7 +247,10 @@ public class BytecodeInterpreter {
                     longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] / longs[1]));
                     break;
-                // case Fdiv:
+                case Fdiv:
+                    floats = popFloats(2);
+                    stack.push(new Value(new FieldType.Float(), floats[0] / floats[1]));
+                    break;
                 // case Ddiv:
                 case Irem:
                     ints = popInts(2);
@@ -233,7 +260,10 @@ public class BytecodeInterpreter {
                     longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] % longs[1]));
                     break;
-                // case Frem:
+                case Frem:
+                    floats = popFloats(2);
+                    stack.push(new Value(new FieldType.Float(), floats[0] % floats[1]));
+                    break;
                 // case Drem:
                 case Ineg:
                     stack.push(new Value(new FieldType.Int(), -((int)stack.pop().getValue())));
@@ -241,7 +271,9 @@ public class BytecodeInterpreter {
                 case Lneg:
                     stack.push(new Value(new FieldType.Long(), -((long)stack.pop().getValue())));
                     break;
-                // case Fneg:
+                case Fneg:
+                    stack.push(new Value(new FieldType.Float(), -((float)stack.pop().getValue())));
+                    break;
                 // case Dneg:
                 // case Ishl:
                 // case Lshl:
@@ -282,8 +314,8 @@ public class BytecodeInterpreter {
                 // case Lookupswitch:
                 case Ireturn:
                 case Lreturn:
+                case Freturn:
                     return stack.pop();
-                // case Freturn:
                 // case Dreturn:
                 // case Areturn:
                 case Return:
@@ -367,6 +399,15 @@ public class BytecodeInterpreter {
 
     private long[] popLongs(int size) {
         return Arrays.stream(popStack(size)).mapToLong(v -> (long)v.getValue()).toArray();
+    }
+
+    private float[] popFloats(int size) {
+        float[] floats = new float[size];
+        Value[] values = popStack(size);
+        for (int i = 0; i < size; i++) {
+            floats[i] = (float)values[i].getValue();
+        }
+        return floats;
     }
 
     private Value[] popStack(int size) {

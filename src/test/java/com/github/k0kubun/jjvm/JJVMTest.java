@@ -36,6 +36,11 @@ public class JJVMTest {
         testJJVM("Long");
     }
 
+    @Test
+    public void testFloat() {
+        testJJVM("Float");
+    }
+
     private void testJJVM(String klass) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);

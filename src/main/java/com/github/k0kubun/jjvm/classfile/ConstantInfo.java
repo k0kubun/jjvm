@@ -1,5 +1,6 @@
 package com.github.k0kubun.jjvm.classfile;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class ConstantInfo {
@@ -113,11 +114,15 @@ public class ConstantInfo {
     }
 
     public static class Float extends ConstantInfo {
-        private final int bytes;
+        private final float value;
 
-        public Float(int bytes) {
+        public Float(byte[] bytes) {
             super(ConstantType.Float);
-            this.bytes = bytes;
+            this.value = ByteBuffer.wrap(bytes).getFloat();
+        }
+
+        public float getValue() {
+            return value;
         }
     }
 

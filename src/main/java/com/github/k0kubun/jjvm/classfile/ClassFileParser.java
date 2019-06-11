@@ -125,7 +125,11 @@ public class ClassFileParser {
                 //     u1 tag;
                 //     u4 bytes;
                 // }
-                info = new ConstantInfo.Float(stream.readInt());
+                byte[] bytes = new byte[4];
+                for (int j = 0; j < 4; j++) {
+                    bytes[j] = stream.readByte();
+                }
+                info = new ConstantInfo.Float(bytes);
             } else if (type == ConstantType.Long) {
                 // CONSTANT_Long_info {
                 //     u1 tag;
