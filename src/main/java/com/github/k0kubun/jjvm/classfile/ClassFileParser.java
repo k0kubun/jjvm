@@ -132,7 +132,7 @@ public class ClassFileParser {
                 //     u4 high_bytes;
                 //     u4 low_bytes;
                 // }
-                info = new ConstantInfo.Long(stream.readInt(), stream.readInt());
+                info = new ConstantInfo.Long(stream.readLong());
             } else if (type == ConstantType.Double) {
                 // CONSTANT_Double_info {
                 //     u1 tag;
@@ -180,6 +180,11 @@ public class ClassFileParser {
                 throw new UnsupportedOperationException(String.format("Unhandled ConstantType (tag:%d)", tag));
             }
             constantPool[i] = info;
+
+            if (type == ConstantType.Long || type == ConstantType.Double) {
+                // All 8-byte constants take up two entries in the constant_pool table of the class file.
+                i++;
+            }
         }
         return constantPool;
     }

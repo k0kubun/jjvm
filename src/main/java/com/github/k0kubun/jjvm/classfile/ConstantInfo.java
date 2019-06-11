@@ -122,13 +122,15 @@ public class ConstantInfo {
     }
 
     public static class Long extends ConstantInfo {
-        private final int highBytes;
-        private final int lowBytes;
+        private final long value;
 
-        public Long(int highBytes, int lowBytes) {
+        public Long(long value) {
             super(ConstantType.Long);
-            this.highBytes = highBytes;
-            this.lowBytes = lowBytes;
+            this.value = value;
+        }
+
+        public long getValue() {
+            return value;
         }
     }
 

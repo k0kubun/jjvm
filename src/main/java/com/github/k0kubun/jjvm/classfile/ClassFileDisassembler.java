@@ -59,8 +59,11 @@ public class ClassFileDisassembler {
                 builder.append("// ");
                 builder.append(label);
             }
-
             builder.append("\n");
+
+            if (info instanceof ConstantInfo.Long || info instanceof ConstantInfo.Double) {
+                i++;
+            }
         }
         return builder.toString();
     }

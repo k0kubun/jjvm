@@ -36,7 +36,7 @@ public class Instruction {
         Iconst_4(0x07, 0),
         Iconst_5(0x08, 0),
         //Lconst_0(0x09, 0),
-        //Lconst_1(0x0a, 0),
+        Lconst_1(0x0a, 0),
         //Fconst_0(0x0b, 0),
         //Fconst_1(0x0c, 0),
         //Fconst_2(0x0d, 0),
@@ -46,11 +46,11 @@ public class Instruction {
         Sipush(0x11, 2), // byte1, byte2
         Ldc(0x12, 1), // index
         //Ldc_W(0x13, 2), // indexbyte1, indexbyte2
-        //Ldc2_W(0x14, 2), // indexbyte1, indexbyte2
+        Ldc2_W(0x14, 2), // indexbyte1, indexbyte2
 
         // === Loads ===
         Iload(0x15, 1), // index
-        //Lload(0x16, 1), // index
+        Lload(0x16, 1), // index
         //Fload(0x17, 1), // index
         //Dload(0x18, 1), // index
         Aload(0x19, 1), // index
@@ -58,9 +58,10 @@ public class Instruction {
         Iload_1(0x1b, 0),
         Iload_2(0x1c, 0),
         Iload_3(0x1d, 0),
+        Lload_0(0x1e, 0),
         Lload_1(0x1f, 0),
-        //Lload_2(0x20, 0),
-        //Lload_3(0x21, 0),
+        Lload_2(0x20, 0),
+        Lload_3(0x21, 0),
         //Fload_0(0x22, 0),
         Fload_1(0x23, 0),
         //Fload_2(0x24, 0),
@@ -84,7 +85,7 @@ public class Instruction {
 
         // === Stores ===
         Istore(0x36, 1), // index
-        //Lstore(0x37, 1), // index
+        Lstore(0x37, 1), // index
         //Fstore(0x38, 1), // index
         //Dstore(0x39, 1), // index
         Astore(0x3a, 1), // index
@@ -92,18 +93,18 @@ public class Instruction {
         Istore_1(0x3c, 0),
         Istore_2(0x3d, 0),
         Istore_3(0x3e, 0),
-        //Lstore_0(0x3f, ),
-        //Lstore_1(0x40, ),
-        //Lstore_2(0x41, ),
-        //Lstore_3(0x42, ),
-        //Fstore_0(0x43, ),
-        //Fstore_1(0x44, ),
-        //Fstore_2(0x45, ),
-        //Fstore_3(0x46, ),
-        //Dstore_0(0x47, ),
-        //Dstore_1(0x48, ),
-        //Dstore_2(0x49, ),
-        //Dstore_3(0x4a, ),
+        Lstore_0(0x3f, 0),
+        Lstore_1(0x40, 0),
+        Lstore_2(0x41, 0),
+        Lstore_3(0x42, 0),
+        //Fstore_0(0x43, 0),
+        //Fstore_1(0x44, 0),
+        //Fstore_2(0x45, 0),
+        //Fstore_3(0x46, 0),
+        //Dstore_0(0x47, 0),
+        //Dstore_1(0x48, 0),
+        //Dstore_2(0x49, 0),
+        //Dstore_3(0x4a, 0),
         Astore_0(0x4b, 0),
         Astore_1(0x4c, 0),
         Astore_2(0x4d, 0),
@@ -130,27 +131,27 @@ public class Instruction {
 
         // === Math ===
         Iadd(0x60, 0),
-        //Ladd(0x61, 0),
+        Ladd(0x61, 0),
         //Fadd(0x62, 0),
         //Dadd(0x63, 0),
         Isub(0x64, 0),
-        //Lsub(0x65, 0),
+        Lsub(0x65, 0),
         //Fsub(0x66, 0),
         //Dsub(0x67, 0),
         Imul(0x68, 0),
-        //Lmul(0x69, 0),
+        Lmul(0x69, 0),
         //Fmul(0x6a, 0),
         //Dmul(0x6b, 0),
         Idiv(0x6c, 0),
-        //Ldiv(0x6d, 0),
+        Ldiv(0x6d, 0),
         //Fdiv(0x6e, 0),
         //Ddiv(0x6f, 0),
         Irem(0x70, 0),
-        //Lrem(0x71, 0),
+        Lrem(0x71, 0),
         //Frem(0x72, 0),
         //Drem(0x73, 0),
         Ineg(0x74, 0),
-        //Lneg(0x75, 0),
+        Lneg(0x75, 0),
         //Fneg(0x76, 0),
         //Dneg(0x77, 0),
         //Ishl(0x78, ),
@@ -195,7 +196,7 @@ public class Instruction {
         //Tableswitch(0xaa, ),
         //Lookupswitch(0xab, ),
         Ireturn(0xac, 0),
-        //Lreturn(0xad, 0),
+        Lreturn(0xad, 0),
         //Freturn(0xae, 0),
         //Dreturn(0xaf, 0),
         Areturn(0xb0, 0),
