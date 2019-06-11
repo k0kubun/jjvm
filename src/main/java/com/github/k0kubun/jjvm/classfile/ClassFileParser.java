@@ -143,7 +143,11 @@ public class ClassFileParser {
                 //     u4 high_bytes;
                 //     u4 low_bytes;
                 // }
-                info = new ConstantInfo.Double(stream.readInt(), stream.readInt());
+                byte[] bytes = new byte[8];
+                for (int j = 0; j < 8; j++) {
+                    bytes[j] = stream.readByte();
+                }
+                info = new ConstantInfo.Double(bytes);
             } else if (type == ConstantType.NameAndType) {
                 // CONSTANT_NameAndType_info {
                 //     u1 tag;

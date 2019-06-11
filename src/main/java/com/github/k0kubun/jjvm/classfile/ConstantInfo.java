@@ -140,13 +140,15 @@ public class ConstantInfo {
     }
 
     public static class Double extends ConstantInfo {
-        private final int highBytes;
-        private final int lowBytes;
+        private final double value;
 
-        public Double(int highBytes, int lowBytes) {
+        public Double(byte[] bytes) {
             super(ConstantType.Double);
-            this.highBytes = highBytes;
-            this.lowBytes = lowBytes;
+            this.value = ByteBuffer.wrap(bytes).getDouble();
+        }
+
+        public double getValue() {
+            return value;
         }
     }
 
