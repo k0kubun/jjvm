@@ -35,7 +35,7 @@ public class Instruction {
         Iconst_3(0x06, 0),
         Iconst_4(0x07, 0),
         Iconst_5(0x08, 0),
-        //Lconst_0(0x09, 0),
+        Lconst_0(0x09, 0),
         Lconst_1(0x0a, 0),
         //Fconst_0(0x0b, 0),
         //Fconst_1(0x0c, 0),

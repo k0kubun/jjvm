@@ -11,7 +11,7 @@ public class Long {
 
     private static long plus() {
         long num1 = 1;
-        long num2 = 2;
+        long num2 = 0;
         long result = num1 + num2;
         System.out.println(result);
         return result;

@@ -67,9 +67,11 @@ public class BytecodeInterpreter {
                 case Iconst_5:
                     stack.push(new Value(new FieldType.Int(), 5));
                     break;
-                // case Lconst_0:
+                case Lconst_0:
+                    stack.push(new Value(new FieldType.Long(), 0l));
+                    break;
                 case Lconst_1:
-                    stack.push(new Value(new FieldType.Long(), (long)1));
+                    stack.push(new Value(new FieldType.Long(), 1l));
                     break;
                 // case Fconst_0:
                 // case Fconst_1:
@@ -106,7 +108,6 @@ public class BytecodeInterpreter {
                 // case Fload:
                 // case Dload:
                 // case Aload:
-                // case Lload_1:
                 // case Fload_1:
                 // case Dload_1:
                 // case Dload_2:
