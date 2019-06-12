@@ -335,12 +335,30 @@ public class BytecodeInterpreter {
                     longv = (Long)stack.pop().getValue();
                     stack.push(new Value(new FieldType.Long(), longv >>> intv));
                     break;
-                // case Iand:
-                // case Land:
-                // case Ior:
-                // case Lor:
-                // case Ixor:
-                // case Lxor:
+                case Iand:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] & ints[1]));
+                    break;
+                case Land:
+                    longs = popLongs(2);
+                    stack.push(new Value(new FieldType.Long(), longs[0] & longs[1]));
+                    break;
+                case Ior:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] | ints[1]));
+                    break;
+                case Lor:
+                    longs = popLongs(2);
+                    stack.push(new Value(new FieldType.Long(), longs[0] | longs[1]));
+                    break;
+                case Ixor:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] ^ ints[1]));
+                    break;
+                case Lxor:
+                    longs = popLongs(2);
+                    stack.push(new Value(new FieldType.Long(), longs[0] ^ longs[1]));
+                    break;
                 // case Iinc:
                 // case I2l:
                 // case I2f:

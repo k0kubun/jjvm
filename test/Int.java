@@ -8,6 +8,9 @@ public class Int {
         int num6 = neg();
         int num7 = shift();
         System.out.println(num1 + num2 + num3 + num4 + num5 + num6 + num7);
+        and();
+        or();
+        xor();
     }
 
     private static int plus() {
@@ -65,5 +68,26 @@ public class Int {
         int result = num1 << 1 + num2 >> 1 + num3 >>> 2;
         System.out.println(result);
         return result;
+    }
+
+    private static void and() {
+        int num1 = 1;
+        int num2 = 3;
+        int result = num1 & num2;
+        System.out.println(result);
+    }
+
+    private static void or() {
+        int num1 = 1;
+        int num2 = 3;
+        int result = num1 | num2;
+        System.out.println(result);
+    }
+
+    private static void xor() {
+        int num1 = 1;
+        int num2 = 3;
+        int result = num1 ^ num2;
+        System.out.println(result);
     }
 }

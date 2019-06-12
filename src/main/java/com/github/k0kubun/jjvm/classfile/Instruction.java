@@ -160,12 +160,12 @@ public class Instruction {
         Lshr(0x7b, 0),
         Iushr(0x7c, 0),
         Lushr(0x7d, 0),
-        //Iand(0x7e, ),
-        //Land(0x7f, ),
+        Iand(0x7e, 0),
+        Land(0x7f, 0),
         Ior(0x80, 0),
-        //Lor(0x81, ),
-        //Ixor(0x82, ),
-        //Lxor(0x83, ),
+        Lor(0x81, 0),
+        Ixor(0x82, 0),
+        Lxor(0x83, 0),
         Iinc(0x84, 2), // index, const
 
         // === Conversions ===
