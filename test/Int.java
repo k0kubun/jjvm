@@ -6,7 +6,8 @@ public class Int {
         int num4 = div();
         int num5 = rem();
         int num6 = neg();
-        System.out.println(num1 + num2 + num3 + num4 + num5 + num6);
+        int num7 = shift();
+        System.out.println(num1 + num2 + num3 + num4 + num5 + num6 + num7);
     }
 
     private static int plus() {
@@ -53,6 +54,15 @@ public class Int {
     private static int neg() {
         int num1 = 3;
         int result = -num1;
+        System.out.println(result);
+        return result;
+    }
+
+    private static int shift() {
+        int num1 = 1;
+        int num2 = 4;
+        int num3 = -1;
+        int result = num1 << 1 + num2 >> 1 + num3 >>> 2;
         System.out.println(result);
         return result;
     }

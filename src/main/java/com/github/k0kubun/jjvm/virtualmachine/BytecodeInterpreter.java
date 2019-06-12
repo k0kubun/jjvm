@@ -306,12 +306,33 @@ public class BytecodeInterpreter {
                 case Dneg:
                     stack.push(new Value(new FieldType.Float(), -((double)stack.pop().getValue())));
                     break;
-                // case Ishl:
-                // case Lshl:
-                // case Ishr:
-                // case Lshr:
-                // case Iushr:
-                // case Lushr:
+                case Ishl:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] << ints[1]));
+                    break;
+                case Lshl:
+                    int intv = (Integer)stack.pop().getValue();
+                    long longv = (Long)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Long(), longv << intv));
+                    break;
+                case Ishr:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] >> ints[1]));
+                    break;
+                case Lshr:
+                    intv = (Integer)stack.pop().getValue();
+                    longv = (Long)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Long(), longv >> intv));
+                    break;
+                case Iushr:
+                    ints = popInts(2);
+                    stack.push(new Value(new FieldType.Int(), ints[0] >>> ints[1]));
+                    break;
+                case Lushr:
+                    intv = (Integer)stack.pop().getValue();
+                    longv = (Long)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Long(), longv >>> intv));
+                    break;
                 // case Iand:
                 // case Land:
                 // case Ior:
@@ -319,6 +340,24 @@ public class BytecodeInterpreter {
                 // case Ixor:
                 // case Lxor:
                 // case Iinc:
+                // case I2l:
+                // case I2f:
+                // case I2d:
+                case L2i:
+                    longv = (Long)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Long(), (int)longv));
+                    break;
+                // case L2f:
+                // case L2d:
+                // case F2i:
+                // case F2l:
+                // case F2d:
+                // case D2i:
+                // case D2l:
+                // case D2f:
+                // case I2b:
+                // case I2c:
+                // case I2s:
                 // case Lcmp:
                 // case Fcmpl:
                 // case Fcmpg:

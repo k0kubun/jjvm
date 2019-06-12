@@ -6,7 +6,8 @@ public class Long {
         long num4 = div();
         long num5 = rem();
         long num6 = neg();
-        System.out.println(num1 + num2 + num3 + num4 + num5 + num6);
+        long num7 = shift();
+        System.out.println(num1 + num2 + num3 + num4 + num5 + num6 + num7);
     }
 
     private static long plus() {
@@ -52,6 +53,15 @@ public class Long {
     private static long neg() {
         long num1 = 3;
         long result = -num1;
+        System.out.println(result);
+        return result;
+    }
+
+    private static long shift() {
+        long num1 = 1;
+        long num2 = 4;
+        long num3 = -1;
+        long result = num1 << 1 + num2 >> 1 + num3 >>> 2;
         System.out.println(result);
         return result;
     }
