@@ -359,7 +359,11 @@ public class BytecodeInterpreter {
                     longs = popLongs(2);
                     stack.push(new Value(new FieldType.Long(), longs[0] ^ longs[1]));
                     break;
-                // case Iinc:
+                case Iinc:
+                    intv = (Integer)locals[instruction.getOperands()[0]].getValue();
+                    locals[instruction.getOperands()[0]] =
+                            new Value(new FieldType.Int(), intv + instruction.getOperands()[1]);
+                    break;
                 // case I2l:
                 // case I2f:
                 // case I2d:

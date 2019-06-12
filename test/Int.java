@@ -11,6 +11,7 @@ public class Int {
         and();
         or();
         xor();
+        inc();
     }
 
     private static int plus() {
@@ -89,5 +90,11 @@ public class Int {
         int num2 = 3;
         int result = num1 ^ num2;
         System.out.println(result);
+    }
+
+    private static void inc() {
+        int num1 = 1;
+        num1++;
+        System.out.println(num1);
     }
 }
