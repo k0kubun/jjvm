@@ -45,7 +45,9 @@ public class BytecodeInterpreter {
 
             switch (opcode) {
                 // case Nop:
-                // case Aconst_Null:
+                case Aconst_Null:
+                    stack.push(new Value(null, null));
+                    break;
                 case Iconst_M1:
                     stack.push(new Value(new FieldType.Int(), -1));
                     break;
@@ -119,7 +121,7 @@ public class BytecodeInterpreter {
                 case Lload:
                 case Fload:
                 case Dload:
-                // case Aload:
+                case Aload:
                     stack.push(locals[instruction.getOperands()[0]]);
                     break;
                 case Iload_0:
@@ -140,18 +142,16 @@ public class BytecodeInterpreter {
                 case Lload_2:
                 case Fload_2:
                 case Dload_2:
-                // case Aload_2:
+                case Aload_2:
                     stack.push(locals[2]);
                     break;
                 case Iload_3:
                 case Lload_3:
                 case Fload_3:
                 case Dload_3:
-                // case Aload_3:
+                case Aload_3:
                     stack.push(locals[3]);
                     break;
-                // case Aload_2:
-                // case Aload_3:
                 // case Iaload:
                 // case Laload:
                 // case Faload:
@@ -164,14 +164,14 @@ public class BytecodeInterpreter {
                 case Lstore:
                 case Fstore:
                 case Dstore:
-                // case Astore:
+                case Astore:
                     locals[instruction.getOperands()[0]] = stack.pop();
                     break;
                 case Istore_0:
                 case Lstore_0:
                 case Fstore_0:
                 case Dstore_0:
-                // case Astore_0:
+                case Astore_0:
                     locals[0] = stack.pop();
                     break;
                 case Istore_1:
@@ -192,7 +192,7 @@ public class BytecodeInterpreter {
                 case Lstore_3:
                 case Fstore_3:
                 case Dstore_3:
-                // case Astore_3:
+                case Astore_3:
                     locals[3] = stack.pop();
                     break;
                 // case Iastore:
@@ -203,7 +203,9 @@ public class BytecodeInterpreter {
                 // case Bastore:
                 // case Castore:
                 // case Sastore:
-                // case Pop:
+                case Pop:
+                    stack.pop();
+                    break;
                 // case Pop2:
                 case Dup:
                     stack.push(stack.getFirst());
@@ -386,7 +388,7 @@ public class BytecodeInterpreter {
                 case Lreturn:
                 case Freturn:
                 case Dreturn:
-                // case Areturn:
+                case Areturn:
                     return stack.pop();
                 case Return:
                     return null;
