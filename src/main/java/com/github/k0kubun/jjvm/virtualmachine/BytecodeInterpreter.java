@@ -205,7 +205,12 @@ public class BytecodeInterpreter {
                 // case Lastore:
                 // case Fastore:
                 // case Dastore:
-                // case Aastore:
+                case Aastore:
+                    arg = stack.pop();
+                    Value index = stack.pop();
+                    receiver = stack.pop();
+                    ((Object[])receiver.getValue())[(Integer)index.getValue()] = arg.getValue();
+                    break;
                 // case Bastore:
                 // case Castore:
                 // case Sastore:
@@ -474,8 +479,17 @@ public class BytecodeInterpreter {
                     stack.push(new Value(type, new Value.Object()));
                     break;
                 // case Newarray:
-                // case Anewarray:
-                // case Arraylength:
+                case Anewarray:
+                    arg = stack.pop();
+                    classInfo = getConstant(instruction.getIndex());
+                    stack.push(new Value(
+                            new FieldType.ArrayType(new FieldType.ObjectType(getName(classInfo))),
+                            new Object[(Integer)arg.getValue()]));
+                    break;
+                case Arraylength:
+                    receiver = stack.pop();
+                    stack.push(new Value(new FieldType.Int(), ((Object[])receiver.getValue()).length));
+                    break;
                 // case Athrow:
                 // case Checkcast:
                 // case Instanceof:

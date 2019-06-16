@@ -113,7 +113,7 @@ public class Instruction {
         //Lastore(0x50, ),
         //Fastore(0x51, ),
         //Dastore(0x52, ),
-        //Aastore(0x53, ),
+        Aastore(0x53, 0),
         //Bastore(0x54, ),
         //Castore(0x55, ),
         //Sastore(0x56, ),
