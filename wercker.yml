@@ -20,3 +20,10 @@ build:
     - script:
       name: test
       code: ./gradlew test --info
+    - script:
+      name: bootstrap test
+      code: |
+        java -cp build/classes/java/main com.github.k0kubun.jjvm.JJVM \
+             -cp build/classes/java/main com.github.k0kubun.jjvm.JJVM \
+             -help \
+             || true
