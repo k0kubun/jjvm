@@ -27,7 +27,8 @@ public class JJVM {
                 "    -cp <class search path of directories and zip/jar files>\n" +
                 "    -classpath <class search path of directories and zip/jar files>\n" +
                 "                  A : separated list of directories, JAR archives,\n" +
-                "                  and ZIP archives to search for class files.\n"
+                "                  and ZIP archives to search for class files.\n" +
+                "    -help         print this help message\n"
         );
     }
 
@@ -50,6 +51,9 @@ public class JJVM {
                     return null;
                 }
                 classPath = args[i];
+            } else if (arg.equals("-help")) {
+                printHelp();
+                System.exit(0);
             } else {
                 System.err.println("Unrecognized option: " + arg);
                 System.exit(1);
