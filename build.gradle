@@ -13,6 +13,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+run {
+    args "-cp build/classes/java/main com.github.k0kubun.jjvm.JJVM -help".split('\\s+')
+}
+
 application {
     mainClassName = project.jjvmClass
 }

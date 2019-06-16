@@ -78,7 +78,7 @@ public class Instruction {
         //Laload(0x2f, ),
         //Faload(0x30, ),
         //Daload(0x31, ),
-        //Aaload(0x32, ),
+        Aaload(0x32, 1), // index
         //Baload(0x33, ),
         Caload(0x34, 0),
         //Saload(0x35, ),
@@ -196,7 +196,7 @@ public class Instruction {
         Iflt(0x9b, 2), // branchbyte1, branchbyte2
         //Ifge(0x9c, ),
         //Ifgt(0x9d, ),
-        //Ifle(0x9e, ),
+        Ifle(0x9e, 2), // branchbyte1, branchbyte2
         //IfIcmpeq(0x9f, ),
         IfIcmpeq(0xa0, 2), // branchbyte1, branchbyte2
         //IfIcmplt(0xa1, ),
@@ -231,7 +231,7 @@ public class Instruction {
         //Invokedynamic(0xba, ),
         New(0xbb, 2), // indexbyte1, indexbyte2
         //Newarray(0xbc, ),
-        //Anewarray(0xbd, ),
+        Anewarray(0xbd, 2), // indexbyte1, indexbyte2
         Arraylength(0xbe, 0),
         Athrow(0xbf, 0),
         Checkcast(0xc0, 2), // indexbyte1, indexbyte2
