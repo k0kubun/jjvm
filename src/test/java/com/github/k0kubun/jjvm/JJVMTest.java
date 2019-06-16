@@ -58,8 +58,7 @@ public class JJVMTest {
         CommandResult java = runCommand("java", "-cp", BASE_PATH, klass);
         assertEquals(0, java.status);
 
-        // TODO: Make jjvm interface compatible with java
-        CommandResult jjvm = runCommand("build/install/jjvm/bin/jjvm", BASE_PATH + klass + ".class");
+        CommandResult jjvm = runCommand("build/install/jjvm/bin/jjvm", "-cp", BASE_PATH, klass);
         assertEquals(0, jjvm.status);
 
         assertEquals(java.stdout, jjvm.stdout);

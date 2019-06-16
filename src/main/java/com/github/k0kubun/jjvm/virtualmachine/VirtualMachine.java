@@ -15,9 +15,9 @@ public class VirtualMachine {
     private final ClassLoader classLoader;
 
     // Threads::create_vm() equivalent
-    public VirtualMachine() {
+    public VirtualMachine(String classPath) {
         classMap = new HashMap<>();
-        classLoader = new ClassLoader();
+        classLoader = new ClassLoader(classPath);
 
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
@@ -25,11 +25,8 @@ public class VirtualMachine {
         callInitializeSystemClass();
     }
 
-    // Load a ClassFile which is not loaded yet
-    public Value.Class loadClass(ClassFile classFile) {
-        Value.Class klass = new Value.Class(classFile);
-        classMap.put(classFile.getThisClassName(), klass);
-        return klass;
+    public Value.Class loadClass(String klass) {
+        return initializeClass(klass.replace('.', '/'));
     }
 
     // Call an instance method
@@ -66,8 +63,9 @@ public class VirtualMachine {
 
     private Value.Class initializeClass(String klass) {
         ClassFile classFile = classLoader.loadClass(klass);
-        loadClass(classFile);
-        return new Value.Class(classFile);
+        Value.Class value = new Value.Class(classFile);
+        classMap.put(classFile.getThisClassName(), value);
+        return value;
     }
 
     // `call_initializeSystemClass` equivalent
