@@ -87,5 +87,9 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
             super(componentType.getType() + "[]");
             this.componentType = componentType;
         }
+
+        public FieldType getComponentType() {
+            return componentType;
+        }
     }
 }

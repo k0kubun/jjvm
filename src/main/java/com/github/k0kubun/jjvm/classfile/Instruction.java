@@ -78,7 +78,7 @@ public class Instruction {
         //Laload(0x2f, ),
         //Faload(0x30, ),
         //Daload(0x31, ),
-        Aaload(0x32, 1), // index
+        Aaload(0x32, 0),
         //Baload(0x33, ),
         Caload(0x34, 0),
         //Saload(0x35, ),

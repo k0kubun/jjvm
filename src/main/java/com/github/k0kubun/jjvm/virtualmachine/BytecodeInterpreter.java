@@ -156,7 +156,13 @@ public class BytecodeInterpreter {
                 // case Laload:
                 // case Faload:
                 // case Daload:
-                // case Aaload:
+                case Aaload:
+                    Value arg = stack.pop();
+                    Value receiver = stack.pop();
+                    stack.push(new Value(
+                            ((FieldType.ArrayType)receiver.getType()).getComponentType(),
+                            ((Object[])receiver.getValue())[(Integer)arg.getValue()]));
+                    break;
                 // case Baload:
                 // case Caload:
                 // case Saload:
@@ -432,8 +438,8 @@ public class BytecodeInterpreter {
                     field = getConstant(instruction.getIndex());
                     nameAndType = getConstant(field.getNameAndTypeIndex());
 
-                    Value arg = stack.pop();
-                    Value receiver = stack.pop();
+                    arg = stack.pop();
+                    receiver = stack.pop();
                     ((Value.Object)receiver.getValue()).setField(getName(nameAndType), arg);
                     break;
                 case Invokevirtual:

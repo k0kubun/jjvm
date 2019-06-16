@@ -56,14 +56,23 @@ public class JJVMTest {
         testJJVM("Obj");
     }
 
-    private void testJJVM(String klass) {
+    @Test
+    public void testArg() {
+        testJJVM("Arg", "hello");
+    }
+
+    private void testJJVM(String klass, String... args) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);
 
-        CommandResult java = runCommand("java", "-cp", BASE_PATH, klass);
+        List<String> command = new ArrayList<>(Arrays.asList("java", "-cp", BASE_PATH, klass));
+        command.addAll(Arrays.asList(args));
+        CommandResult java = runCommand(command);
         assertEquals(0, java.status);
 
-        CommandResult jjvm = runCommand("build/install/jjvm/bin/jjvm", "-cp", BASE_PATH, klass);
+        command = new ArrayList<>(Arrays.asList("build/install/jjvm/bin/jjvm", "-cp", BASE_PATH, klass));
+        command.addAll(Arrays.asList(args));
+        CommandResult jjvm = runCommand(command);
         assertEquals(0, jjvm.status);
 
         assertEquals(java.stdout, jjvm.stdout);
@@ -71,11 +80,14 @@ public class JJVMTest {
     }
 
     private static CommandResult runCommand(String exec, String... args) {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-
         List<String> command = new ArrayList<>();
         command.add(exec);
         command.addAll(Arrays.asList(args));
+        return runCommand(command);
+    }
+
+    private static CommandResult runCommand(List<String> command) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(command);
         Process process;
         try {

@@ -1,7 +1,6 @@
 package com.github.k0kubun.jjvm;
 
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
-import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 import com.github.k0kubun.jjvm.virtualmachine.Value;
 import com.github.k0kubun.jjvm.virtualmachine.VirtualMachine;
 
@@ -16,8 +15,9 @@ public class JJVM {
 
         VirtualMachine vm = new VirtualMachine(options.getClassPath());
         Value.Class klass = vm.loadClass(options.getClassName());
-        Descriptor mainMethod = DescriptorParser.parseMethod("([Ljava/lang/String;)V");
-        vm.callStaticMethod(klass, "main", mainMethod, new Value[]{}); // TODO: pass rest args
+        vm.callStaticMethod(
+                klass, "main", DescriptorParser.parseMethod("([Ljava/lang/String;)V"),
+                new Value[]{ new Value(DescriptorParser.parseField("[Ljava/lang/String;"), options.getArgs()) });
     }
 
     private static void printHelp() {
@@ -41,6 +41,7 @@ public class JJVM {
             final String arg = args[i];
             if (!arg.startsWith("-")) {
                 className = args[i];
+                i++;
                 break;
             }
 
