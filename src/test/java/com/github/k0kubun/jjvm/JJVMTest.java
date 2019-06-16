@@ -51,6 +51,11 @@ public class JJVMTest {
         testJJVM("Str");
     }
 
+    @Test
+    public void testObject() {
+        testJJVM("Obj");
+    }
+
     private void testJJVM(String klass) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);

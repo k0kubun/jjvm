@@ -36,6 +36,25 @@ public class VirtualMachine {
         return executeMethod(klass, method, args);
     }
 
+    // Call an instance method, but specialized for invokespecial
+    public Value callMethodSpecial(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+        Value.Class klass = getClass(args[0].getType());
+        MethodInfo method;
+        try {
+            method = searchMethod(klass, methodName, methodType);
+        } catch (NoMethodException e) {
+            if (methodType.getReturn() instanceof MethodInfo.VoidDescriptor
+                    && methodType.getParameters().size() == 0 && methodName.equals("<init>")) {
+                // ignore undefined <init>:()V call
+                return null;
+            } else {
+                throw e;
+            }
+        }
+        // TODO: handle `protected` specially
+        return executeMethod(klass, method, args);
+    }
+
     public Value callStaticMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         MethodInfo method = searchMethod(klass, methodName, methodType);
         return executeMethod(klass, method, args);
@@ -84,12 +103,18 @@ public class VirtualMachine {
                 return method;
             }
         }
-        throw new RuntimeException(String.format("NoMethodError: %s.%s (%s)",
+        throw new NoMethodException(String.format("%s.%s (%s)",
                 klass.getClassFile().getThisClassName(), methodName, methodType.toString()));
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
         return new BytecodeInterpreter(this, klass).execute(code, args);
+    }
+
+    private static class NoMethodException extends RuntimeException {
+        public NoMethodException(String message) {
+            super(message);
+        }
     }
 }

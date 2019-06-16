@@ -1,7 +1,7 @@
 public class Obj {
     public static void main(String[] args) {
         Person person = new Person(26);
-        person.getAge();
+        System.out.println(person.getAge());
     }
 
     private static class Person {

@@ -66,5 +66,13 @@ public class Value {
         public Object() {
             fields = new HashMap<>();
         }
+
+        public Value getField(String field) {
+            return fields.get(field);
+        }
+
+        public void setField(String field, Value value) {
+            fields.put(field, value);
+        }
     }
 }

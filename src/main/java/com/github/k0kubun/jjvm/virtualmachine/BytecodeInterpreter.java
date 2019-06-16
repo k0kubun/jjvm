@@ -421,8 +421,21 @@ public class BytecodeInterpreter {
                     stack.push(klass.getField(getName(nameAndType))); // XXX: do we need to check type here?
                     break;
                 // case Putstatic:
-                // case Getfield:
-                // case Putfield:
+                case Getfield:
+                    field = getConstant(instruction.getIndex());
+                    nameAndType = getConstant(field.getNameAndTypeIndex());
+
+                    Value.Object object = (Value.Object)stack.pop().getValue();
+                    stack.push(object.getField(getName(nameAndType)));
+                    break;
+                case Putfield:
+                    field = getConstant(instruction.getIndex());
+                    nameAndType = getConstant(field.getNameAndTypeIndex());
+
+                    Value arg = stack.pop();
+                    Value receiver = stack.pop();
+                    ((Value.Object)receiver.getValue()).setField(getName(nameAndType), arg);
+                    break;
                 case Invokevirtual:
                     String methodName = getMethodName(instruction.getIndex());
                     Descriptor methodType = getMethodType(instruction.getIndex());
@@ -436,11 +449,10 @@ public class BytecodeInterpreter {
                     }
                     break;
                 case Invokespecial:
-                    // TODO: handle `protected` specially
                     methodName = getMethodName(instruction.getIndex());
                     methodType = getMethodType(instruction.getIndex());
                     args = popStack(methodType.getParameters().size() + 1); // including receiver
-                    pushIfNotNull(vm.callMethod(methodName, methodType, args));
+                    pushIfNotNull(vm.callMethodSpecial(methodName, methodType, args));
                     break;
                 case Invokestatic:
                     methodName = getMethodName(instruction.getIndex());
@@ -450,7 +462,11 @@ public class BytecodeInterpreter {
                     break;
                 // case Invokeinterface:
                 // case Invokedynamic:
-                // case New:
+                case New:
+                    ConstantInfo.Class classInfo = getConstant(instruction.getIndex());
+                    FieldType type = DescriptorParser.parseField(String.format("L%s;", getName(classInfo)));
+                    stack.push(new Value(type, new Value.Object()));
+                    break;
                 // case Newarray:
                 // case Anewarray:
                 // case Arraylength:
@@ -525,8 +541,8 @@ public class BytecodeInterpreter {
     private Descriptor getMethodType(int methodIndex) {
         Methodref methodref = getConstant(methodIndex);
         NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
-        return DescriptorParser.parseMethod(
-                ((Utf8)getConstant(nameAndType.getDescriptorIndex())).getString());
+        String descriptor = ((Utf8)getConstant(nameAndType.getDescriptorIndex())).getString();
+        return DescriptorParser.parseMethod(descriptor);
     }
 
     private String getName(ConstantInfo.NamedInfo constant) {
