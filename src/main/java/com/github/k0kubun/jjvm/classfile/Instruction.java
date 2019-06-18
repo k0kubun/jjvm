@@ -74,7 +74,7 @@ public class Instruction {
         Aload_1(0x2b, 0),
         Aload_2(0x2c, 0),
         Aload_3(0x2d, 0),
-        //Iaload(0x2e, ),
+        Iaload(0x2e, 0),
         //Laload(0x2f, ),
         //Faload(0x30, ),
         //Daload(0x31, ),
@@ -109,7 +109,7 @@ public class Instruction {
         Astore_1(0x4c, 0),
         Astore_2(0x4d, 0),
         Astore_3(0x4e, 0),
-        //Iastore(0x4f, ),
+        Iastore(0x4f, 0),
         //Lastore(0x50, ),
         //Fastore(0x51, ),
         //Dastore(0x52, ),
@@ -230,7 +230,7 @@ public class Instruction {
         Invokeinterface(0xb9, 4), // indexbyte1, indexbyte2, count, 0
         //Invokedynamic(0xba, ),
         New(0xbb, 2), // indexbyte1, indexbyte2
-        //Newarray(0xbc, ),
+        Newarray(0xbc, 1), // atype
         Anewarray(0xbd, 2), // indexbyte1, indexbyte2
         Arraylength(0xbe, 0),
         Athrow(0xbf, 0),

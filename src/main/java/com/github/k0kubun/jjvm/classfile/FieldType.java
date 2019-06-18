@@ -61,6 +61,12 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
         }
     }
 
+    public static class Short extends BaseType {
+        public Short() {
+            super("short");
+        }
+    }
+
     public static class Boolean extends BaseType {
         public Boolean() {
             super("boolean");

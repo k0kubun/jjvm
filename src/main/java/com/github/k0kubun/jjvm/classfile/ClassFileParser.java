@@ -529,6 +529,8 @@ public class ClassFileParser {
                     return new FieldType.Int();
                 case 'J':
                     return new FieldType.Long();
+                case 'S':
+                    return new FieldType.Short();
                 case 'Z':
                     return new FieldType.Boolean();
                 case 'L':

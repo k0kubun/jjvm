@@ -152,13 +152,19 @@ public class BytecodeInterpreter {
                 case Aload_3:
                     stack.push(locals[3]);
                     break;
-                // case Iaload:
+                case Iaload:
+                    Value arg = stack.pop();
+                    Value receiver = stack.pop();
+                    stack.push(new Value(
+                            ((FieldType.ArrayType)receiver.getType()).getComponentType(),
+                            ((int[])receiver.getValue())[(Integer)arg.getValue()]));
+                    break;
                 // case Laload:
                 // case Faload:
                 // case Daload:
                 case Aaload:
-                    Value arg = stack.pop();
-                    Value receiver = stack.pop();
+                    arg = stack.pop();
+                    receiver = stack.pop();
                     stack.push(new Value(
                             ((FieldType.ArrayType)receiver.getType()).getComponentType(),
                             ((Object[])receiver.getValue())[(Integer)arg.getValue()]));
@@ -201,7 +207,12 @@ public class BytecodeInterpreter {
                 case Astore_3:
                     locals[3] = stack.pop();
                     break;
-                // case Iastore:
+                case Iastore:
+                    Value value = stack.pop();
+                    arg = stack.pop();
+                    receiver = stack.pop();
+                    ((int[])receiver.getValue())[(Integer)arg.getValue()] = (Integer)value.getValue();
+                    break;
                 // case Lastore:
                 // case Fastore:
                 // case Dastore:
@@ -478,7 +489,37 @@ public class BytecodeInterpreter {
                     FieldType type = DescriptorParser.parseField(String.format("L%s;", getName(classInfo)));
                     stack.push(new Value(type, new Value.Object()));
                     break;
-                // case Newarray:
+                case Newarray:
+                    int size = (Integer)stack.pop().getValue();
+                    switch (instruction.getOperands()[0]) {
+                        case 4: // T_BOOLEAN
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Boolean()), new boolean[size]));
+                            break;
+                        case 5: // T_CHAR
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Char()), new char[size]));
+                            break;
+                        case 6: // T_FLOAT
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Float()), new float[size]));
+                            break;
+                        case 7: // T_DOUBLE
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Double()), new double[size]));
+                            break;
+                        case 8: // T_BYTE
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Byte()), new byte[size]));
+                            break;
+                        case 9: // T_SHORT
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Short()), new short[size]));
+                            break;
+                        case 10: // T_INT
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Int()), new int[size]));
+                            break;
+                        case 11: // T_LONG
+                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Long()), new long[size]));
+                            break;
+                        default:
+                            throw new RuntimeException(String.format("unexpected tag is given with newarray: %d", instruction.getOperands()[0]));
+                    }
+                    break;
                 case Anewarray:
                     arg = stack.pop();
                     classInfo = getConstant(instruction.getIndex());
@@ -488,7 +529,7 @@ public class BytecodeInterpreter {
                     break;
                 case Arraylength:
                     receiver = stack.pop();
-                    stack.push(new Value(new FieldType.Int(), ((Object[])receiver.getValue()).length));
+                    stack.push(new Value(new FieldType.Int(), getArrayLength(receiver)));
                     break;
                 // case Athrow:
                 // case Checkcast:
@@ -550,6 +591,17 @@ public class BytecodeInterpreter {
             values[values.length - 1 - i] = stack.pop();
         }
         return values;
+    }
+
+    private int getArrayLength(Value value) {
+        FieldType type = ((FieldType.ArrayType)value.getType()).getComponentType();
+        if (type instanceof FieldType.ObjectType) {
+            return ((Object[]) value.getValue()).length;
+        } else if (type instanceof FieldType.Int) {
+            return ((int[])value.getValue()).length;
+        } else {
+            throw new RuntimeException("unexpected array type for arraylength: " + type.toString());
+        }
     }
 
     private String getMethodName(int methodIndex) {
