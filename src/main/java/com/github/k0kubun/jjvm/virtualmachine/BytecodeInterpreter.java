@@ -594,11 +594,7 @@ public class BytecodeInterpreter {
     private Value[] popStack(int size) {
         Value[] values = new Value[size];
         for (int i = 0; i < values.length; i++) {
-            try {
-                values[values.length - 1 - i] = stack.pop();
-            } catch(RuntimeException e) {
-                throw e;
-            }
+            values[values.length - 1 - i] = stack.pop();
         }
         return values;
     }
