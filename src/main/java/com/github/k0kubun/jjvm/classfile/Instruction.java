@@ -197,8 +197,8 @@ public class Instruction {
         //Ifge(0x9c, ),
         //Ifgt(0x9d, ),
         Ifle(0x9e, 2), // branchbyte1, branchbyte2
-        //IfIcmpeq(0x9f, ),
-        IfIcmpeq(0xa0, 2), // branchbyte1, branchbyte2
+        IfIcmpeq(0x9f, 2), // branchbyte1, branchbyte2
+        IfIcmpne(0xa0, 2), // branchbyte1, branchbyte2
         IfIcmplt(0xa1, 2), // branchbyte1, branchbyte2
         IfIcmpge(0xa2, 2), // branchbyte1, branchbyte2
         IfIcmpgt(0xa3, 2), // branchbyte1, branchbyte2

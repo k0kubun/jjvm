@@ -34,5 +34,19 @@ public class Conditional {
             a = 8;
         }
         System.out.println(a);
+
+        if (b == 2) {
+            a = 9;
+        } else {
+            a = 10;
+        }
+        System.out.println(a);
+
+        if (b != 2) {
+            a = 11;
+        } else {
+            a = 12;
+        }
+        System.out.println(a);
     }
 }

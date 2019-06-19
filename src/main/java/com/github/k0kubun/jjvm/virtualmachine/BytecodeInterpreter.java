@@ -415,8 +415,20 @@ public class BytecodeInterpreter {
                 // case Ifge:
                 // case Ifgt:
                 // case Ifle:
-                // case IfIcmpeq:
-                // case IfIcmpeq:
+                case IfIcmpeq:
+                    ints = popInts(2);
+                    if (ints[0] == ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case IfIcmpne:
+                    ints = popInts(2);
+                    if (ints[0] != ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case IfIcmplt:
                     ints = popInts(2);
                     if (ints[0] < ints[1]) {
