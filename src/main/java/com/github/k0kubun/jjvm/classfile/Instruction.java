@@ -1,5 +1,7 @@
 package com.github.k0kubun.jjvm.classfile;
 
+import java.nio.ByteBuffer;
+
 public class Instruction {
     private final Opcode opcode;
     private final byte[] operands;
@@ -19,7 +21,7 @@ public class Instruction {
 
     // "indexbyte" operand
     public int getIndex() {
-        return ((int)this.operands[0] << 4) + (int)this.operands[1];
+        return ByteBuffer.wrap(this.operands).getShort();
     }
 
     // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
@@ -75,11 +77,11 @@ public class Instruction {
         Aload_2(0x2c, 0),
         Aload_3(0x2d, 0),
         Iaload(0x2e, 0),
-        //Laload(0x2f, ),
-        //Faload(0x30, ),
+        Laload(0x2f, 0),
+        Faload(0x30, 0),
         //Daload(0x31, ),
         Aaload(0x32, 0),
-        //Baload(0x33, ),
+        Baload(0x33, 0),
         Caload(0x34, 0),
         //Saload(0x35, ),
 
@@ -114,8 +116,8 @@ public class Instruction {
         //Fastore(0x51, ),
         //Dastore(0x52, ),
         Aastore(0x53, 0),
-        //Bastore(0x54, ),
-        //Castore(0x55, ),
+        Bastore(0x54, 0),
+        Castore(0x55, 0),
         //Sastore(0x56, ),
 
         // === Stack ===
@@ -169,7 +171,7 @@ public class Instruction {
         Iinc(0x84, 2), // index, const
 
         // === Conversions ===
-        //I2l(0x85, 0),
+        I2l(0x85, 0),
         //I2f(0x86, 0),
         //I2d(0x87, 0),
         L2i(0x88, 0),
@@ -181,12 +183,12 @@ public class Instruction {
         //D2i(0x8e, 0),
         //D2l(0x8f, 0),
         //D2f(0x90, 0),
-        //I2b(0x91, 0),
-        //I2c(0x92, 0),
+        I2b(0x91, 0),
+        I2c(0x92, 0),
         //I2s(0x93, 0),
 
         // === Comparisons ===
-        //Lcmp(0x94, ),
+        Lcmp(0x94, 0),
         //Fcmpl(0x95, ),
         //Fcmpg(0x96, ),
         //Dcmpl(0x97, ),
@@ -194,8 +196,8 @@ public class Instruction {
         Ifeq(0x99, 2), // branchbyte1, branchbyte2
         Ifne(0x9a, 2), // branchbyte1, branchbyte2
         Iflt(0x9b, 2), // branchbyte1, branchbyte2
-        //Ifge(0x9c, ),
-        //Ifgt(0x9d, ),
+        Ifge(0x9c, 2), // branchbyte1, branchbyte2
+        Ifgt(0x9d, 2), // branchbyte1, branchbyte2
         Ifle(0x9e, 2), // branchbyte1, branchbyte2
         IfIcmpeq(0x9f, 2), // branchbyte1, branchbyte2
         IfIcmpne(0xa0, 2), // branchbyte1, branchbyte2
@@ -204,7 +206,7 @@ public class Instruction {
         IfIcmpgt(0xa3, 2), // branchbyte1, branchbyte2
         IfIcmple(0xa4, 2), // branchbyte1, branchbyte2
         IfAcmpeq(0xa5, 2), // branchbyte1, branchbyte2
-        //IfAcmpne(0xa6, ),
+        IfAcmpne(0xa6, 2), // branchbyte1, branchbyte2
 
         // === Control ===
         Goto(0xa7, 2), // branchbyte1, branchbyte2

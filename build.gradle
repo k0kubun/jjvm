@@ -14,6 +14,7 @@ dependencies {
 }
 
 run {
+    // args "-cp test Str".split('\\s+')
     args "-cp build/classes/java/main com.github.k0kubun.jjvm.JJVM -help".split('\\s+')
 }
 

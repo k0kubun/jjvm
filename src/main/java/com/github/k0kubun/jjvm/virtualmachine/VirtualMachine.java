@@ -109,7 +109,7 @@ public class VirtualMachine {
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        return new BytecodeInterpreter(this, klass).execute(code, args);
+        return new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
     }
 
     private static class NoMethodException extends RuntimeException {

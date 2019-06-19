@@ -13,15 +13,58 @@ public class Value {
     // `value` should have a value serialized depending on the `type`. The caller of
     // getValue() is responsible for deserializing the `value` depending on the `type`.
     //   I                   => Integer
-    //   Ljava/lang/Integer; => Integer
-    //   Ljava/lang/String;  => String
-    //   [Ljava/lang/String; => String[]
-    //   Ljava/lang/Class;   => Value.Class
+    //   [I                  => Integer[]
+    //   Ljava/lang/String;  => Value.Object
+    //   [Ljava/lang/String; => Value.Object[]
     //   Lfoo/bar;           => Value.Object
+    //   [Lfoo/bar;          => Value.Object[]
+    //   Ljava/lang/Class;   => Value.Class
     //   null (of any class) => null
     private final java.lang.Object value;
 
-    public Value(FieldType type, java.lang.Object value) {
+    public static Value Null() {
+        return new Value((FieldType)null, null);
+    }
+
+    public Value(FieldType.Boolean type, boolean value) {
+        this(type, (Boolean)value);
+    }
+
+    public Value(FieldType.Int type, int value) {
+        this(type, (Integer)value);
+    }
+
+    public Value(FieldType.Long type, long value) {
+        this(type, (Long)value);
+    }
+
+    public Value(FieldType.Float type, float value) {
+        this(type, (Float)value);
+    }
+
+    public Value(FieldType.Double type, double value) {
+        this(type, (Double)value);
+    }
+
+    public Value(FieldType.Char type, char value) {
+        this(type, (Character)value);
+    }
+
+    public Value(FieldType.ArrayType type, java.lang.Object value) {
+        // XXX: more type check?
+        this((FieldType)type, value);
+    }
+
+    public Value(FieldType type, Object value) {
+        this(type, (java.lang.Object)value);
+    }
+
+    public Value(FieldType.ArrayType type, Object[] value) {
+        this(type, (java.lang.Object)value);
+    }
+
+    // This is deliberately made private to perform type checking between type and value.
+    private Value(FieldType type, java.lang.Object value) {
         this.type = type;
         this.value = value;
     }
@@ -32,6 +75,19 @@ public class Value {
 
     public java.lang.Object getValue() {
         return value;
+    }
+
+    // This should be used only when type conversion is needed. Indicator: "must be of type int"
+    public int getIntValue() {
+        if (type instanceof FieldType.Int) {
+            return (int)value;
+        } else if (type instanceof FieldType.Char) {
+            return (int)((char)value);
+        } else if (type instanceof FieldType.Boolean) {
+            return (Boolean)value ? 1 : 0;
+        } else {
+            throw new RuntimeException("unexpected type used with getIntValue: " + type);
+        }
     }
 
     // Value.Class representes an instance of a class insntace. It holds static field values.
@@ -57,14 +113,20 @@ public class Value {
         }
     }
 
-    // A non-native class (native: Integer, String, ...) uses Value.Object to represent
-    // an instance holding its field values.
-    // XXX: The native classes may need to be wrapped by Value.Object to have fields later.
+    // Any non-primitive type uses Value.Object to represent an instance holding its field values.
     public static class Object {
         private final Map<String, Value> fields;
 
         public Object() {
             fields = new HashMap<>();
+        }
+
+        public Object(String str) {
+            this();
+            char[] value = new char[str.length()];
+            str.getChars(0, str.length(), value, 0);
+            setField("value", new Value(
+                    new FieldType.ArrayType(new FieldType.Char()), value));
         }
 
         public Value getField(String field) {

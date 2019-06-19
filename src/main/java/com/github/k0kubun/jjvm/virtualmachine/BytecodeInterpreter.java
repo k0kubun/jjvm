@@ -10,12 +10,12 @@ import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 import com.github.k0kubun.jjvm.classfile.Instruction;
+import com.github.k0kubun.jjvm.classfile.MethodInfo;
 import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.List;
 
 // The core of the VirtualMachine.
 // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
@@ -32,7 +32,7 @@ public class BytecodeInterpreter {
         this.pc = 0;
     }
 
-    public Value execute(AttributeInfo.Code code, Value[] methodArgs) {
+    public Value execute(AttributeInfo.Code code, Value[] methodArgs, MethodInfo.ReturnDescriptor returnType) {
         Value[] locals = new Value[code.getMaxLocals()];
         for (int i = 0; i < methodArgs.length; i++) {
             locals[i] = methodArgs[i];
@@ -46,7 +46,7 @@ public class BytecodeInterpreter {
             switch (opcode) {
                 // case Nop:
                 case Aconst_Null:
-                    stack.push(new Value(null, null));
+                    stack.push(Value.Null());
                     break;
                 case Iconst_M1:
                     stack.push(new Value(new FieldType.Int(), -1));
@@ -76,7 +76,7 @@ public class BytecodeInterpreter {
                     stack.push(new Value(new FieldType.Long(), 1L));
                     break;
                 case Fconst_0:
-                    stack.push(new Value(new FieldType.Long(), 0F));
+                    stack.push(new Value(new FieldType.Float(), 0F));
                     break;
                 case Fconst_1:
                     stack.push(new Value(new FieldType.Float(), 1F));
@@ -98,8 +98,8 @@ public class BytecodeInterpreter {
                     ConstantInfo constValue = getConstant(instruction.getOperands()[0]);
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
-                        stack.push(new Value(type,
-                                ((Utf8) getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString()));
+                        String str = ((Utf8) getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString();
+                        stack.push(new Value(type, new Value.Object(str)));
                     } else if (constValue instanceof ConstantInfo.Float) {
                         stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
                     } else {
@@ -156,7 +156,7 @@ public class BytecodeInterpreter {
                     Value arg = stack.pop();
                     Value receiver = stack.pop();
                     stack.push(new Value(
-                            ((FieldType.ArrayType)receiver.getType()).getComponentType(),
+                            (FieldType.Int)((FieldType.ArrayType)receiver.getType()).getComponentType(),
                             ((int[])receiver.getValue())[(Integer)arg.getValue()]));
                     break;
                 // case Laload:
@@ -167,10 +167,16 @@ public class BytecodeInterpreter {
                     receiver = stack.pop();
                     stack.push(new Value(
                             ((FieldType.ArrayType)receiver.getType()).getComponentType(),
-                            ((Object[])receiver.getValue())[(Integer)arg.getValue()]));
+                            ((Value.Object[])receiver.getValue())[(Integer)arg.getValue()]));
                     break;
                 // case Baload:
-                // case Caload:
+                case Caload:
+                    arg = stack.pop();
+                    receiver = stack.pop();
+                    stack.push(new Value(
+                            (FieldType.Char)((FieldType.ArrayType)receiver.getType()).getComponentType(),
+                            ((char[])receiver.getValue())[(Integer)arg.getValue()]));
+                    break;
                 // case Saload:
                 case Istore:
                 case Lstore:
@@ -328,7 +334,7 @@ public class BytecodeInterpreter {
                     stack.push(new Value(new FieldType.Float(), -((float)stack.pop().getValue())));
                     break;
                 case Dneg:
-                    stack.push(new Value(new FieldType.Float(), -((double)stack.pop().getValue())));
+                    stack.push(new Value(new FieldType.Double(), -((double)stack.pop().getValue())));
                     break;
                 case Ishl:
                     ints = popInts(2);
@@ -391,7 +397,7 @@ public class BytecodeInterpreter {
                 // case I2d:
                 case L2i:
                     longv = (Long)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Long(), (int)longv));
+                    stack.push(new Value(new FieldType.Int(), (int)longv));
                     break;
                 // case L2f:
                 // case L2d:
@@ -411,7 +417,13 @@ public class BytecodeInterpreter {
                 // case Dcmpg:
                 // case Ifeq:
                 // case Ifne:
-                // case Iflt:
+                case Iflt:
+                    intv = (int)stack.pop().getValue();
+                    if (intv < 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 // case Ifge:
                 // case Ifgt:
                 // case Ifle:
@@ -467,6 +479,15 @@ public class BytecodeInterpreter {
                 // case Tableswitch:
                 // case Lookupswitch:
                 case Ireturn:
+                    value = stack.pop();
+                    intv = value.getIntValue();
+                    if (returnType instanceof FieldType.Int) {
+                        return value;
+                    } else if (returnType instanceof FieldType.Boolean) {
+                        return new Value(new FieldType.Boolean(), intv == 1);
+                    } else {
+                        throw new RuntimeException("unexpected returnType in ireturn: " + returnType);
+                    }
                 case Lreturn:
                 case Freturn:
                 case Dreturn:
@@ -503,7 +524,12 @@ public class BytecodeInterpreter {
 
                     if (args[0].getType().getType().equals("java.io.PrintStream") && methodName.equals("println") && args.length == 2) {
                         // Stub PrintStream#println implementation for now
-                        System.out.println(args[1].getValue());
+                        Object val = args[1].getValue();
+                        if (args[1].getType().getType().equals("java.lang.String")) {
+                            System.out.println((char[])((Value.Object)val).getField("value").getValue());
+                        } else {
+                            System.out.println(val);
+                        }
                     } else {
                         pushIfNotNull(vm.callMethod(methodName, methodType, args));
                     }
@@ -563,7 +589,7 @@ public class BytecodeInterpreter {
                     classInfo = getConstant(instruction.getIndex());
                     stack.push(new Value(
                             new FieldType.ArrayType(new FieldType.ObjectType(getName(classInfo))),
-                            new Object[(Integer)arg.getValue()]));
+                            new Value.Object[(Integer)arg.getValue()]));
                     break;
                 case Arraylength:
                     receiver = stack.pop();
@@ -603,7 +629,7 @@ public class BytecodeInterpreter {
     }
 
     private int[] popInts(int size) {
-        return Arrays.stream(popStack(size)).mapToInt(v -> (int)v.getValue()).toArray();
+        return Arrays.stream(popStack(size)).mapToInt(v -> v.getIntValue()).toArray();
     }
 
     private long[] popLongs(int size) {
@@ -637,6 +663,8 @@ public class BytecodeInterpreter {
             return ((Object[]) value.getValue()).length;
         } else if (type instanceof FieldType.Int) {
             return ((int[])value.getValue()).length;
+        } else if (type instanceof FieldType.Char) {
+            return ((char[])value.getValue()).length;
         } else {
             throw new RuntimeException("unexpected array type for arraylength: " + type.toString());
         }

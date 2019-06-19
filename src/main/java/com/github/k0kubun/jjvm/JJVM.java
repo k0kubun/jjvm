@@ -1,6 +1,7 @@
 package com.github.k0kubun.jjvm;
 
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
+import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.virtualmachine.Value;
 import com.github.k0kubun.jjvm.virtualmachine.VirtualMachine;
 
@@ -17,7 +18,7 @@ public class JJVM {
         Value.Class klass = vm.loadClass(options.getClassName());
         vm.callStaticMethod(
                 klass, "main", DescriptorParser.parseMethod("([Ljava/lang/String;)V"),
-                new Value[]{ new Value(DescriptorParser.parseField("[Ljava/lang/String;"), options.getArgs()) });
+                new Value[]{ new Value(new FieldType.ArrayType(new FieldType.ObjectType("java/lang/String")), options.getArgs()) });
     }
 
     private static void printHelp() {
@@ -70,12 +71,15 @@ public class JJVM {
 
     private static class JJVMOptions {
         private final String className;
-        private final String[] args;
+        private final Value.Object[] args;
         private final String classPath;
 
         public JJVMOptions(String className, String[] args, String classPath) {
             this.className = className;
-            this.args = args;
+            this.args = new Value.Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                this.args[i] = new Value.Object(args[i]);
+            }
             this.classPath = classPath;
         }
 
@@ -83,7 +87,7 @@ public class JJVM {
             return className;
         }
 
-        public String[] getArgs() {
+        public Value.Object[] getArgs() {
             return args;
         }
 
