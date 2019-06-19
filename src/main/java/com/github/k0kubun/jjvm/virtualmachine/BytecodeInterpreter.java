@@ -37,10 +37,10 @@ public class BytecodeInterpreter {
         for (int i = 0; i < methodArgs.length; i++) {
             locals[i] = methodArgs[i];
         }
-        List<Instruction> instructions = code.getInstructions();
+        Instruction[] instructions = code.getInstructions();
 
         while (true) {
-            Instruction instruction = instructions.get(pc);
+            Instruction instruction = instructions[pc];
             Opcode opcode = instruction.getOpcode();
 
             switch (opcode) {
@@ -418,7 +418,13 @@ public class BytecodeInterpreter {
                 // case IfIcmpeq:
                 // case IfIcmpeq:
                 // case IfIcmplt:
-                // case IfIcmpge:
+                case IfIcmpge:
+                    ints = popInts(2);
+                    if (ints[0] >= ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 // case IfIcmpgt:
                 // case IfIcmple:
                 // case IfAcmpeq:
@@ -553,7 +559,7 @@ public class BytecodeInterpreter {
                     throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
             }
 
-            pc++;
+            pc += 1 + instruction.getOpcode().getArgc();
         }
     }
 
@@ -588,7 +594,11 @@ public class BytecodeInterpreter {
     private Value[] popStack(int size) {
         Value[] values = new Value[size];
         for (int i = 0; i < values.length; i++) {
-            values[values.length - 1 - i] = stack.pop();
+            try {
+                values[values.length - 1 - i] = stack.pop();
+            } catch(RuntimeException e) {
+                throw e;
+            }
         }
         return values;
     }

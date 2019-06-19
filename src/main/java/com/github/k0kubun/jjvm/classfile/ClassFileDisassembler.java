@@ -127,8 +127,8 @@ public class ClassFileDisassembler {
 
             builder.append(String.format("%s:\n", attribute.getName()));
             builder.append(String.format("  stack=%d, locals=%d, args_size=%d\n", codeAttribute.getMaxStack(), codeAttribute.getMaxLocals(), argsSize));
-            int pos = 0;
-            for (Instruction instruction : codeAttribute.getInstructions()) {
+            for (int pos = 0; pos < codeAttribute.getInstructions().length;) {
+                Instruction instruction = codeAttribute.getInstructions()[pos];
                 builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction, pos)));
                 pos += 1 + instruction.getOpcode().getArgc();
             }

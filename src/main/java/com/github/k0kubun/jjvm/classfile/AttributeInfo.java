@@ -16,11 +16,11 @@ public class AttributeInfo {
     public static class Code extends AttributeInfo {
         private final int maxStack;
         private final int maxLocals;
-        private final List<Instruction> instructions;
+        private final Instruction[] instructions;
         private final ExceptionTableEntry[] exceptionTable;
         private final AttributeInfo[] attributes;
 
-        public Code(int maxStack, int maxLocals, List<Instruction> instructions, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
+        public Code(int maxStack, int maxLocals, Instruction[] instructions, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
             super("Code");
             this.maxStack = maxStack;
             this.maxLocals = maxLocals;
@@ -29,7 +29,7 @@ public class AttributeInfo {
             this.attributes = attributes;
         }
 
-        public List<Instruction> getInstructions() {
+        public Instruction[] getInstructions() {
             return instructions;
         }
 
