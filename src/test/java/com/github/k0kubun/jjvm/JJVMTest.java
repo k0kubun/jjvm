@@ -66,6 +66,11 @@ public class JJVMTest {
         testJJVM("Array");
     }
 
+    @Test
+    public void testConditional() {
+        testJJVM("Conditional");
+    }
+
     private void testJJVM(String klass, String... args) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);

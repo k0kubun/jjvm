@@ -417,7 +417,13 @@ public class BytecodeInterpreter {
                 // case Ifle:
                 // case IfIcmpeq:
                 // case IfIcmpeq:
-                // case IfIcmplt:
+                case IfIcmplt:
+                    ints = popInts(2);
+                    if (ints[0] < ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case IfIcmpge:
                     ints = popInts(2);
                     if (ints[0] >= ints[1]) {
@@ -425,11 +431,25 @@ public class BytecodeInterpreter {
                         continue;
                     }
                     break;
-                // case IfIcmpgt:
-                // case IfIcmple:
+                case IfIcmpgt:
+                    ints = popInts(2);
+                    if (ints[0] > ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case IfIcmple:
+                    ints = popInts(2);
+                    if (ints[0] <= ints[1]) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 // case IfAcmpeq:
                 // case IfAcmpne:
-                // case Goto:
+                case Goto:
+                    pc += instruction.getIndex();
+                    continue;
                 // case Jsr:
                 // case Ret:
                 // case Tableswitch:

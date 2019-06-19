@@ -199,10 +199,10 @@ public class Instruction {
         Ifle(0x9e, 2), // branchbyte1, branchbyte2
         //IfIcmpeq(0x9f, ),
         IfIcmpeq(0xa0, 2), // branchbyte1, branchbyte2
-        //IfIcmplt(0xa1, ),
+        IfIcmplt(0xa1, 2), // branchbyte1, branchbyte2
         IfIcmpge(0xa2, 2), // branchbyte1, branchbyte2
-        //IfIcmpgt(0xa3, ),
-        //IfIcmple(0xa4, ),
+        IfIcmpgt(0xa3, 2), // branchbyte1, branchbyte2
+        IfIcmple(0xa4, 2), // branchbyte1, branchbyte2
         IfAcmpeq(0xa5, 2), // branchbyte1, branchbyte2
         //IfAcmpne(0xa6, ),
 
