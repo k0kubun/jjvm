@@ -13,7 +13,7 @@ public class Value {
     // `value` should have a value serialized depending on the `type`. The caller of
     // getValue() is responsible for deserializing the `value` depending on the `type`.
     //   I                   => Integer
-    //   [I                  => Integer[]
+    //   [I                  => int[]
     //   Ljava/lang/String;  => Value.Object
     //   [Ljava/lang/String; => Value.Object[]
     //   Lfoo/bar;           => Value.Object

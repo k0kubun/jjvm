@@ -48,12 +48,24 @@ public class ClassFile {
         return name.getString();
     }
 
+    public String getSuperClassName() {
+        if (superClass == 0)
+            return null;
+        ConstantInfo.Class klass = (ConstantInfo.Class)constantPool[superClass - 1];
+        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex() - 1];
+        return name.getString();
+    }
+
     public List<AccessFlag> getAccessFlags() {
         return accessFlags;
     }
 
     public MethodInfo[] getMethods() {
         return methods;
+    }
+
+    public FieldInfo[] getFields() {
+        return fields;
     }
 
     public ConstantInfo[] getConstantPool() {

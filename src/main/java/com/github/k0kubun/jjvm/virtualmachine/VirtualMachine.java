@@ -37,8 +37,8 @@ public class VirtualMachine {
     }
 
     // Call an instance method, but specialized for invokespecial
-    public Value callMethodSpecial(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
-        Value.Class klass = getClass(args[0].getType());
+    public Value callMethodSpecial(String methodClassName, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+        Value.Class klass = getClass(methodClassName);
         MethodInfo method;
         try {
             method = searchMethod(klass, methodName, methodType);
@@ -55,7 +55,8 @@ public class VirtualMachine {
         return executeMethod(klass, method, args);
     }
 
-    public Value callStaticMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+    public Value callStaticMethod(String methodClassName, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
+        Value.Class klass = getClass(methodClassName);
         MethodInfo method = searchMethod(klass, methodName, methodType);
         return executeMethod(klass, method, args);
     }
@@ -108,6 +109,16 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
+        if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
+            // TODO: Carve out this logic
+            if (klass.getClassFile().getThisClassName().equals("java/lang/System") && method.getName().equals("arraycopy")) {
+                System.arraycopy(args[0].getValue(), (Integer)args[1].getValue(),
+                        args[2].getValue(), (Integer)args[3].getValue(), (Integer)args[4].getValue());
+                return null;
+            } else {
+                throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
+            }
+        }
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
         return new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
     }

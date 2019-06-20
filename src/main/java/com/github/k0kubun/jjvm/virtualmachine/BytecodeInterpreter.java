@@ -1,12 +1,14 @@
 package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
+import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Fieldref;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Methodref;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.NameAndType;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
+import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 import com.github.k0kubun.jjvm.classfile.Instruction;
@@ -424,9 +426,27 @@ public class BytecodeInterpreter {
                         continue;
                     }
                     break;
-                // case Ifge:
-                // case Ifgt:
-                // case Ifle:
+                case Ifge:
+                    intv = (int)stack.pop().getValue();
+                    if (intv >= 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case Ifgt:
+                    intv = (int)stack.pop().getValue();
+                    if (intv > 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case Ifle:
+                    intv = (int)stack.pop().getValue();
+                    if (intv <= 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case IfIcmpeq:
                     ints = popInts(2);
                     if (ints[0] == ints[1]) {
@@ -535,23 +555,27 @@ public class BytecodeInterpreter {
                     }
                     break;
                 case Invokespecial:
+                    String methodClassName = getMethodClassName(instruction.getIndex());
                     methodName = getMethodName(instruction.getIndex());
                     methodType = getMethodType(instruction.getIndex());
                     args = popStack(methodType.getParameters().size() + 1); // including receiver
-                    pushIfNotNull(vm.callMethodSpecial(methodName, methodType, args));
+                    pushIfNotNull(vm.callMethodSpecial(methodClassName, methodName, methodType, args));
                     break;
                 case Invokestatic:
+                    methodClassName = getMethodClassName(instruction.getIndex());
                     methodName = getMethodName(instruction.getIndex());
                     methodType = getMethodType(instruction.getIndex());
                     args = popStack(methodType.getParameters().size());
-                    pushIfNotNull(vm.callStaticMethod(thisClass, methodName, methodType, args));
+                    pushIfNotNull(vm.callStaticMethod(methodClassName, methodName, methodType, args));
                     break;
                 // case Invokeinterface:
                 // case Invokedynamic:
                 case New:
-                    ConstantInfo.Class classInfo = getConstant(instruction.getIndex());
-                    FieldType type = DescriptorParser.parseField(String.format("L%s;", getName(classInfo)));
-                    stack.push(new Value(type, new Value.Object()));
+                    String className = getName(getConstant(instruction.getIndex()));
+                    FieldType type = DescriptorParser.parseField(String.format("L%s;", className));
+                    object = new Value.Object();
+                    initializeObject(object, className);
+                    stack.push(new Value(type, object));
                     break;
                 case Newarray:
                     int size = (Integer)stack.pop().getValue();
@@ -586,9 +610,9 @@ public class BytecodeInterpreter {
                     break;
                 case Anewarray:
                     arg = stack.pop();
-                    classInfo = getConstant(instruction.getIndex());
+                    className = getName(getConstant(instruction.getIndex()));
                     stack.push(new Value(
-                            new FieldType.ArrayType(new FieldType.ObjectType(getName(classInfo))),
+                            new FieldType.ArrayType(new FieldType.ObjectType(className)),
                             new Value.Object[(Integer)arg.getValue()]));
                     break;
                 case Arraylength:
@@ -668,6 +692,35 @@ public class BytecodeInterpreter {
         } else {
             throw new RuntimeException("unexpected array type for arraylength: " + type.toString());
         }
+    }
+
+    private void initializeObject(Value.Object object, String className) {
+        ClassFile classFile = vm.getClass(className).getClassFile();
+        if (classFile.getSuperClassName() != null) {
+            initializeObject(object, classFile.getSuperClassName());
+        }
+
+        for (FieldInfo fieldInfo : classFile.getFields()) {
+            FieldType fieldType = DescriptorParser.parseField(((Utf8)classFile.getConstantPool()[fieldInfo.getDescriptorIndex() - 1]).getString());
+            String fieldName = ((Utf8)classFile.getConstantPool()[fieldInfo.getNameIndex() - 1]).getString();
+
+            // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
+            if (fieldType instanceof FieldType.Int) {
+                object.setField(fieldName, new Value(new FieldType.Int(), 0));
+            } else if (fieldType instanceof FieldType.Long) {
+                object.setField(fieldName, new Value(new FieldType.Long(), 0));
+            } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
+                object.setField(fieldName, null);
+            } else {
+                throw new RuntimeException("unexpected field type in new: " + fieldType);
+            }
+        }
+    }
+
+    private String getMethodClassName(int methodIndex) {
+        Methodref methodref = getConstant(methodIndex);
+        ConstantInfo.Class klass = getConstant(methodref.getClassIndex());
+        return getName(klass);
     }
 
     private String getMethodName(int methodIndex) {

@@ -124,7 +124,7 @@ public class Instruction {
         Pop(0x57, 0),
         //Pop2(0x58, 0),
         Dup(0x59, 0),
-        //Dup_X1(0x5a, ),
+        Dup_X1(0x5a, 0),
         //Dup_X2(0x5b, ),
         //Dup2(0x5c, ),
         //Dup2_X1(0x5d, ),

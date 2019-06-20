@@ -12,4 +12,12 @@ public class FieldInfo {
         this.descriptorIndex = descriptorIndex;
         this.attributes = attributes;
     }
+
+    public int getNameIndex() {
+        return nameIndex;
+    }
+
+    public int getDescriptorIndex() {
+        return descriptorIndex;
+    }
 }

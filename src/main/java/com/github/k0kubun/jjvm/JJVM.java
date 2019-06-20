@@ -15,9 +15,8 @@ public class JJVM {
         }
 
         VirtualMachine vm = new VirtualMachine(options.getClassPath());
-        Value.Class klass = vm.loadClass(options.getClassName());
         vm.callStaticMethod(
-                klass, "main", DescriptorParser.parseMethod("([Ljava/lang/String;)V"),
+                options.getClassName(), "main", DescriptorParser.parseMethod("([Ljava/lang/String;)V"),
                 new Value[]{ new Value(new FieldType.ArrayType(new FieldType.ObjectType("java/lang/String")), options.getArgs()) });
     }
 

@@ -2,7 +2,7 @@ public class Str {
     public static void main(String[] args) {
         retNull();
         variables();
-        // TODO: test String concatenation by StringBuilder
+        //builder();
         startsWith();
     }
 
@@ -20,6 +20,12 @@ public class Str {
         System.out.println(b);
         System.out.println(c);
         System.out.println(d);
+    }
+
+    private static void builder() {
+        String hello = "hello";
+        String world = "world";
+        System.out.println(hello + world);
     }
 
     private static void startsWith() {
