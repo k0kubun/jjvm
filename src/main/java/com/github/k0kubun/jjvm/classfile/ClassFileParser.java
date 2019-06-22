@@ -1,9 +1,11 @@
 package com.github.k0kubun.jjvm.classfile;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class ClassFileParser {
     //     attribute_info attributes[attributes_count];
     // }
     public ClassFile parse(InputStream inputStream) throws IOException {
-        DataInputStream stream = new DataInputStream(inputStream);
+        CountedInputStream stream = new CountedInputStream(inputStream);
 
         int magic = stream.readInt();
         int minorVersion = stream.readUnsignedShort();
@@ -74,7 +76,7 @@ public class ClassFileParser {
     //     u1 tag;
     //     u1 info[];
     // }
-    private ConstantInfo[] parseConstantPool(DataInputStream stream, int constantPoolCount) throws IOException {
+    private ConstantInfo[] parseConstantPool(CountedInputStream stream, int constantPoolCount) throws IOException {
         ConstantInfo[] constantPool = new ConstantInfo[constantPoolCount];
         for (int i = 0; i < constantPoolCount; i++) {
             int tag = stream.readUnsignedByte();
@@ -204,7 +206,7 @@ public class ClassFileParser {
     //     u2             attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    private FieldInfo[] parseFields(DataInputStream stream, int fieldsCount, ConstantInfo[] constantPool) throws IOException {
+    private FieldInfo[] parseFields(CountedInputStream stream, int fieldsCount, ConstantInfo[] constantPool) throws IOException {
         FieldInfo[] fields = new FieldInfo[fieldsCount];
         for (int i = 0; i < fieldsCount; i++) {
             int accessFlags = stream.readUnsignedShort();
@@ -224,16 +226,20 @@ public class ClassFileParser {
     //     u2             attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    private MethodInfo[] parseMethods(DataInputStream stream, int methodsCount, ConstantInfo[] constantPool) throws IOException {
+    private MethodInfo[] parseMethods(CountedInputStream stream, int methodsCount, ConstantInfo[] constantPool) throws IOException {
         MethodInfo[] methods = new MethodInfo[methodsCount];
         for (int i = 0; i < methodsCount; i++) {
             int accessFlags = stream.readUnsignedShort();
             int nameIndex = stream.readUnsignedShort();
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
+            String name = ((ConstantInfo.Utf8)constantPool[nameIndex - 1]).getString();
             AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
             MethodInfo.Descriptor descriptor = DescriptorParser.parseMethod(getString(constantPool, descriptorIndex));
             methods[i] = new MethodInfo(accessFlags, getString(constantPool, nameIndex), descriptor, attributes);
+            if (name == null) {
+                throw new RuntimeException(name);
+            }
         }
         return methods;
     }
@@ -243,7 +249,7 @@ public class ClassFileParser {
     //     u4 attribute_length;
     //     u1 info[attribute_length];
     // }
-    private AttributeInfo[] parseAttributes(DataInputStream stream, int attributesCount, ConstantInfo[] constantPool) throws IOException {
+    private AttributeInfo[] parseAttributes(CountedInputStream stream, int attributesCount, ConstantInfo[] constantPool) throws IOException {
         AttributeInfo[] attributes = new AttributeInfo[attributesCount];
         for (int j = 0; j < attributesCount; j++) {
             int attributeNameIndex = stream.readUnsignedShort();
@@ -282,7 +288,7 @@ public class ClassFileParser {
     //     u2 attributes_count;
     //     attribute_info attributes[attributes_count];
     // }
-    private AttributeInfo.Code parseCodeAttribute(DataInputStream stream, ConstantInfo[] constantPool) throws IOException {
+    private AttributeInfo.Code parseCodeAttribute(CountedInputStream stream, ConstantInfo[] constantPool) throws IOException {
         int maxStack = stream.readUnsignedShort();
         int maxLocals = stream.readUnsignedShort();
         Instruction[] code = parseCode(stream, stream.readInt());
@@ -303,19 +309,46 @@ public class ClassFileParser {
         return new AttributeInfo.Code(maxStack, maxLocals, code, exceptionTable, attributes);
     }
 
-    private Instruction[] parseCode(DataInputStream stream, int codeLength) throws IOException {
+    private Instruction[] parseCode(CountedInputStream stream, int codeLength) throws IOException {
         Instruction[] instructions = new Instruction[codeLength];
         for (int i = 0; i < codeLength;) {
             byte code = (byte)stream.readUnsignedByte();
             Instruction.Opcode opcode = Instruction.Opcode.fromCode(code);
 
-            byte[] operands = new byte[opcode.getArgc()];
-            for (int j = 0; j < opcode.getArgc(); j++) {
-                operands[j] = (byte)stream.readUnsignedByte();
+            byte[] operands;
+            int argc = opcode.getArgc();
+            if (argc == -1) { // variable-length
+                switch (opcode) {
+                    case Lookupswitch:
+                        int mod4 = stream.getCounter() % 4;
+                        byte[] pad = new byte[mod4 == 0 ? 0 : 4 - mod4];
+                        byte[] defaultByte = new byte[4];
+                        byte[] nPairs = new byte[4];
+                        stream.read(pad);
+                        stream.read(defaultByte);
+                        stream.read(nPairs);
+                        byte[] pairs = new byte[8 * ByteBuffer.wrap(nPairs).getInt()];
+                        stream.read(pairs);
+
+                        ByteBuffer buffer = ByteBuffer.allocate(pad.length + defaultByte.length + nPairs.length + pairs.length);
+                        buffer.put(pad);
+                        buffer.put(defaultByte);
+                        buffer.put(nPairs);
+                        buffer.put(pairs);
+                        operands = buffer.array();
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected variable-length opcode: " + opcode.getName());
+                }
+            } else {
+                operands = new byte[argc];
+                for (int j = 0; j < argc; j++) {
+                    operands[j] = (byte)stream.readUnsignedByte();
+                }
             }
 
             instructions[i] = new Instruction(opcode, operands);
-            i += 1 + opcode.getArgc();
+            i += 1 + operands.length;
         }
         return instructions;
     }
@@ -328,7 +361,7 @@ public class ClassFileParser {
     //         u2 line_number;
     //     } line_number_table[line_number_table_length];
     // }
-    private AttributeInfo.LineNumberTable parseLineNumberTableAttribute(DataInputStream stream) throws IOException {
+    private AttributeInfo.LineNumberTable parseLineNumberTableAttribute(CountedInputStream stream) throws IOException {
         int tableLength = stream.readUnsignedShort();
         AttributeInfo.LineNumberTable.LineNumberEntry[] table = new AttributeInfo.LineNumberTable.LineNumberEntry[tableLength];
 
@@ -346,7 +379,7 @@ public class ClassFileParser {
     //     u2              number_of_entries;
     //     stack_map_frame entries[number_of_entries];
     // }
-    private AttributeInfo.StackMapTable parseStackMapTableAttribute(DataInputStream stream) throws IOException {
+    private AttributeInfo.StackMapTable parseStackMapTableAttribute(CountedInputStream stream) throws IOException {
         int numberOfEntries = stream.readUnsignedShort();
         AttributeInfo.StackMapTable.StackMapFrame[] entries = new AttributeInfo.StackMapTable.StackMapFrame[numberOfEntries];
         for (int i = 0; i < numberOfEntries; i++) {
@@ -417,7 +450,7 @@ public class ClassFileParser {
         return new AttributeInfo.StackMapTable(entries);
     }
 
-    private AttributeInfo.StackMapTable.VerificationTypeInfo[] parseVerificationTypeInfo(DataInputStream stream, int n) throws IOException {
+    private AttributeInfo.StackMapTable.VerificationTypeInfo[] parseVerificationTypeInfo(CountedInputStream stream, int n) throws IOException {
         AttributeInfo.StackMapTable.VerificationTypeInfo[] infos = new AttributeInfo.StackMapTable.VerificationTypeInfo[n];
         for (int i = 0; i < n; i++) {
             int tag = stream.readUnsignedByte();
@@ -437,12 +470,12 @@ public class ClassFileParser {
     //     u4 attribute_length;
     //     u2 sourcefile_index;
     // }
-    private AttributeInfo.SourceFile parseSourceFileAttribute(DataInputStream stream) throws IOException {
+    private AttributeInfo.SourceFile parseSourceFileAttribute(CountedInputStream stream) throws IOException {
         int index = stream.readUnsignedShort();
         return new AttributeInfo.SourceFile(index);
     }
 
-    private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {
+    private int[] readUnsignedShorts(CountedInputStream stream, int length) throws IOException {
         int[] shorts = new int[length];
         for (int i = 0; i < length; i++) {
             shorts[i] = stream.readUnsignedShort();
@@ -567,6 +600,64 @@ public class ClassFileParser {
             String scanned = string.substring(pos, index + 1);
             pos += (index + 1 - pos);
             return scanned;
+        }
+    }
+
+    // A wrapper of DataInputStream that allows to count how many bytes are read.
+    private static class CountedInputStream {
+        private final DataInputStream stream;
+        private int counter;
+
+        public CountedInputStream(InputStream in) {
+            stream = new DataInputStream(in);
+            counter = 0;
+        }
+
+        public int getCounter() {
+            return counter;
+        }
+
+        public byte readByte() throws IOException {
+            counter++;
+            return stream.readByte();
+        }
+
+        public int readUnsignedByte() throws IOException {
+            counter++;
+            return stream.readUnsignedByte();
+        }
+
+        public int readUnsignedShort() throws IOException {
+            counter += 2;
+            return stream.readUnsignedShort();
+        }
+
+        public int readInt() throws IOException {
+            counter += 4;
+            return stream.readInt();
+        }
+
+        public long readLong() throws IOException {
+            counter += 8;
+            return stream.readLong();
+        }
+
+        public void skipBytes(int n) throws IOException {
+            counter += n;
+            stream.skipBytes(n);
+        }
+
+        public void read(byte[] buf) throws IOException {
+            counter += buf.length;
+            stream.read(buf);
+        }
+
+        public int read() throws IOException {
+            return stream.read();
+        }
+
+        public int available() throws IOException {
+            return stream.available();
         }
     }
 }

@@ -641,7 +641,7 @@ public class BytecodeInterpreter {
                     throw new RuntimeException("BytecodeInterpreter#execute does not implement opcode: " + opcode.getName());
             }
 
-            pc += 1 + instruction.getOpcode().getArgc();
+            pc += 1 + instruction.getOperands().length;
         }
     }
 

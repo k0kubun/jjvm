@@ -177,22 +177,22 @@ public class Instruction {
         L2i(0x88, 0),
         //L2f(0x89, 0),
         //L2d(0x8a, 0),
-        //F2i(0x8b, 0),
+        F2i(0x8b, 0),
         //F2l(0x8c, 0),
-        //F2d(0x8d, 0),
+        F2d(0x8d, 0),
         //D2i(0x8e, 0),
-        //D2l(0x8f, 0),
-        //D2f(0x90, 0),
+        D2l(0x8f, 0),
+        D2f(0x90, 0),
         I2b(0x91, 0),
         I2c(0x92, 0),
         //I2s(0x93, 0),
 
         // === Comparisons ===
         Lcmp(0x94, 0),
-        //Fcmpl(0x95, ),
-        //Fcmpg(0x96, ),
-        //Dcmpl(0x97, ),
-        //Dcmpg(0x98, ),
+        Fcmpl(0x95, 0),
+        Fcmpg(0x96, 0),
+        Dcmpl(0x97, 0),
+        Dcmpg(0x98, 0),
         Ifeq(0x99, 2), // branchbyte1, branchbyte2
         Ifne(0x9a, 2), // branchbyte1, branchbyte2
         Iflt(0x9b, 2), // branchbyte1, branchbyte2
@@ -213,7 +213,7 @@ public class Instruction {
         //Jsr(0xa8, ),
         //Ret(0xa9, ),
         //Tableswitch(0xaa, ),
-        //Lookupswitch(0xab, ),
+        Lookupswitch(0xab, -1), // variable-length: <0-3 byte pad> defaultbyte1,2,3,4 npairs1,2,3,4 match-offset pairs...
         Ireturn(0xac, 0),
         Lreturn(0xad, 0),
         Freturn(0xae, 0),
@@ -261,6 +261,7 @@ public class Instruction {
             return code;
         }
 
+        // This returns -1 for variable-length instruction. This should not be trusted.
         public int getArgc() {
             return argc;
         }

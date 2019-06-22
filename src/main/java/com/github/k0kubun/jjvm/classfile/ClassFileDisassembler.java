@@ -130,7 +130,7 @@ public class ClassFileDisassembler {
             for (int pos = 0; pos < codeAttribute.getInstructions().length;) {
                 Instruction instruction = codeAttribute.getInstructions()[pos];
                 builder.append(String.format("  %4d: %s\n", pos, disassembleInstruction(instruction, pos)));
-                pos += 1 + instruction.getOpcode().getArgc();
+                pos += 1 + instruction.getOperands().length;
             }
 
             if (codeAttribute.getExceptionTable().length > 0) {
