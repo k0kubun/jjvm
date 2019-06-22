@@ -47,7 +47,7 @@ public class Instruction {
         Bipush(0x10, 1), // byte
         Sipush(0x11, 2), // byte1, byte2
         Ldc(0x12, 1), // index
-        //Ldc_W(0x13, 2), // indexbyte1, indexbyte2
+        Ldc_W(0x13, 2), // indexbyte1, indexbyte2
         Ldc2_W(0x14, 2), // indexbyte1, indexbyte2
 
         // === Loads ===
@@ -79,11 +79,11 @@ public class Instruction {
         Iaload(0x2e, 0),
         Laload(0x2f, 0),
         Faload(0x30, 0),
-        //Daload(0x31, ),
+        Daload(0x31, 0),
         Aaload(0x32, 0),
         Baload(0x33, 0),
         Caload(0x34, 0),
-        //Saload(0x35, ),
+        Saload(0x35, 0),
 
         // === Stores ===
         Istore(0x36, 1), // index
@@ -112,13 +112,13 @@ public class Instruction {
         Astore_2(0x4d, 0),
         Astore_3(0x4e, 0),
         Iastore(0x4f, 0),
-        //Lastore(0x50, ),
-        //Fastore(0x51, ),
-        //Dastore(0x52, ),
+        Lastore(0x50, 0),
+        Fastore(0x51, 0),
+        Dastore(0x52, 0),
         Aastore(0x53, 0),
         Bastore(0x54, 0),
         Castore(0x55, 0),
-        //Sastore(0x56, ),
+        Sastore(0x56, 0),
 
         // === Stack ===
         Pop(0x57, 0),
@@ -230,7 +230,7 @@ public class Instruction {
         Invokespecial(0xb7, 2), // indexbyte1, indexbyte2
         Invokestatic(0xb8, 2), // indexbyte1, indexbyte2
         Invokeinterface(0xb9, 4), // indexbyte1, indexbyte2, count, 0
-        //Invokedynamic(0xba, ),
+        Invokedynamic(0xba, 4), // indexbyte1, indexbyte2, 0, 0
         New(0xbb, 2), // indexbyte1, indexbyte2
         Newarray(0xbc, 1), // atype
         Anewarray(0xbd, 2), // indexbyte1, indexbyte2
