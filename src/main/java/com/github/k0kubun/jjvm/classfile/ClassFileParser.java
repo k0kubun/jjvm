@@ -176,7 +176,7 @@ public class ClassFileParser {
                 //     u1 tag;
                 //     u2 descriptor_index;
                 // }
-                info = new ConstantInfo.MethodType(stream.readUnsignedByte());
+                info = new ConstantInfo.MethodType(stream.readUnsignedShort());
             } else if (type == ConstantType.InvokeDynamic) {
                 // CONSTANT_InvokeDynamic_info {
                 //     u1 tag;
