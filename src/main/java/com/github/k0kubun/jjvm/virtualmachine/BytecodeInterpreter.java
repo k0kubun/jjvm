@@ -417,8 +417,20 @@ public class BytecodeInterpreter {
                 // case Fcmpg:
                 // case Dcmpl:
                 // case Dcmpg:
-                // case Ifeq:
-                // case Ifne:
+                case Ifeq:
+                    intv = stack.pop().getIntValue();
+                    if (intv == 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case Ifne:
+                    intv = stack.pop().getIntValue();
+                    if (intv != 0) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case Iflt:
                     intv = (int)stack.pop().getValue();
                     if (intv < 0) {
@@ -490,7 +502,13 @@ public class BytecodeInterpreter {
                     }
                     break;
                 // case IfAcmpeq:
-                // case IfAcmpne:
+                case IfAcmpne:
+                    Value[] values = popStack(2);
+                    if (values[0].getValue() != values[1].getValue()) { // TODO: add a test for this
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case Goto:
                     pc += instruction.getIndex();
                     continue;
@@ -621,7 +639,20 @@ public class BytecodeInterpreter {
                     break;
                 // case Athrow:
                 // case Checkcast:
-                // case Instanceof:
+                case Instanceof:
+                    constValue = getConstant(instruction.getIndex());
+                    if (constValue instanceof ConstantInfo.Class) {
+                        receiver = stack.pop();
+                        className = getName((ConstantInfo.Class)constValue);
+                        if (receiver.getType().getType().equals(className.replace('/', '.'))) {
+                            stack.push(new Value(new FieldType.Int(), 1));
+                        } else {
+                            throw new RuntimeException("Not implemented path of instanceof :)");
+                        }
+                    } else {
+                        throw new RuntimeException("unexpected type of ConstantInfo in instanceof: " + constValue);
+                    }
+                    break;
                 case Monitorenter:
                     stack.pop(); // TODO: synchronize this
                     break;

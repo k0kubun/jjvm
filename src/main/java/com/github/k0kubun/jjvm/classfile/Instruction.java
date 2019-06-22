@@ -237,7 +237,7 @@ public class Instruction {
         Arraylength(0xbe, 0),
         Athrow(0xbf, 0),
         Checkcast(0xc0, 2), // indexbyte1, indexbyte2
-        Instanceof(0xc1, 0), // indexbyte1, indexbyte2
+        Instanceof(0xc1, 2), // indexbyte1, indexbyte2
         Monitorenter(0xc2, 0),
         Monitorexit(0xc3, 0),
 
