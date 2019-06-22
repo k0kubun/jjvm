@@ -501,10 +501,16 @@ public class BytecodeInterpreter {
                         continue;
                     }
                     break;
-                // case IfAcmpeq:
-                case IfAcmpne:
+                case IfAcmpeq:
                     Value[] values = popStack(2);
-                    if (values[0].getValue() != values[1].getValue()) { // TODO: add a test for this
+                    if (values[0].getValue() == values[1].getValue()) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
+                case IfAcmpne:
+                    values = popStack(2);
+                    if (values[0].getValue() != values[1].getValue()) {
                         pc += instruction.getIndex();
                         continue;
                     }

@@ -127,6 +127,8 @@ public class Value {
             str.getChars(0, str.length(), value, 0);
             setField("value", new Value(
                     new FieldType.ArrayType(new FieldType.Char()), value));
+            // TODO: initializeObject of VM
+            setField("hash", new Value(new FieldType.Int(), 0));
         }
 
         public Value getField(String field) {

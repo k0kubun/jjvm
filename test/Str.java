@@ -4,6 +4,7 @@ public class Str {
         variables();
         builder();
         startsWith();
+        comparison();
     }
 
     private static String retNull() {
@@ -31,5 +32,18 @@ public class Str {
     private static void startsWith() {
         String str = "str";
         System.out.println(str.startsWith("s"));
+    }
+
+    private static void comparison() {
+        String a = "foo";
+        String b = a;
+        String c = new String("foo");
+        String d = "bar";
+        System.out.println(a == b ? 1 : 0);
+        System.out.println(a == c ? 1 : 0);
+        System.out.println(a == d ? 1 : 0);
+        System.out.println(a != b ? 1 : 0);
+        System.out.println(a != c ? 1 : 0);
+        System.out.println(a != d ? 1 : 0);
     }
 }
