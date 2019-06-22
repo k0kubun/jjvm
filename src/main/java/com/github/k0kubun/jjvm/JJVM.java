@@ -83,7 +83,7 @@ public class JJVM {
         }
 
         public String getClassName() {
-            return className;
+            return className.replace('.', '/');
         }
 
         public Value.Object[] getArgs() {
