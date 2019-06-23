@@ -15,6 +15,7 @@ import com.github.k0kubun.jjvm.classfile.Instruction;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 
+import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -104,6 +105,10 @@ public class BytecodeInterpreter {
                         stack.push(new Value(type, new Value.Object(str)));
                     } else if (constValue instanceof ConstantInfo.Float) {
                         stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
+                    } else if (constValue instanceof ConstantInfo.Class) {
+                        FieldType type = DescriptorParser.parseField("Ljava/lang/Class;"); // XXX: Is the class an object type...?
+                        String name = getName((ConstantInfo.Class)constValue);
+                        stack.push(new Value(type, vm.getClass(name)));
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
                     }
@@ -520,7 +525,16 @@ public class BytecodeInterpreter {
                     continue;
                 // case Jsr:
                 // case Ret:
-                // case Tableswitch:
+                case Tableswitch:
+                    intv = (int)stack.pop().getValue();
+                    int low = instruction.getIntArg(1);
+                    int high = instruction.getIntArg(2);
+                    if (low <= intv && intv <= high) {
+                        pc += instruction.getIntArg(3 + (intv - low));
+                    } else {
+                        pc += instruction.getIntArg(0);
+                    }
+                    continue;
                 // case Lookupswitch:
                 case Ireturn:
                     value = stack.pop();
@@ -543,9 +557,15 @@ public class BytecodeInterpreter {
                     Fieldref field = getConstant(instruction.getIndex());
                     NameAndType nameAndType = getConstant(field.getNameAndTypeIndex());
                     Value.Class klass = vm.getClass(getName(getConstant(field.getClassIndex())));
-                    stack.push(klass.getField(getName(nameAndType))); // XXX: do we need to check type here?
+                    String name = getName(nameAndType);
+                    stack.push(klass.getField(name)); // XXX: do we need to check type here?
                     break;
-                // case Putstatic:
+                case Putstatic:
+                    field = getConstant(instruction.getIndex());
+                    nameAndType = getConstant(field.getNameAndTypeIndex());
+                    klass = vm.getClass(getName(getConstant(field.getClassIndex())));
+                    klass.setField(getName(nameAndType), stack.pop());
+                    break;
                 case Getfield:
                     field = getConstant(instruction.getIndex());
                     nameAndType = getConstant(field.getNameAndTypeIndex());
@@ -566,13 +586,15 @@ public class BytecodeInterpreter {
                     Descriptor methodType = getMethodType(instruction.getIndex());
                     Value[] args = popStack(methodType.getParameters().size() + 1); // including receiver
 
-                    if (args[0].getType().getType().equals("java.io.PrintStream") && methodName.equals("println") && args.length == 2) {
-                        // Stub PrintStream#println implementation for now
+                    if (args[0].getType().getType().equals("java.io.PrintStream") && args.length == 2
+                            && (methodName.equals("println") || methodName.equals("print"))) {
+                        // Stub PrintStream#println, #print implementation for now
                         Object val = args[1].getValue();
+                        PrintStream stream = (methodName.equals("println") ? System.out : System.err); // obviously... this is a workaround :)
                         if (args[1].getType().getType().equals("java.lang.String")) {
-                            System.out.println((char[])((Value.Object)val).getField("value").getValue());
+                            stream.println((char[])((Value.Object)val).getField("value").getValue());
                         } else {
-                            System.out.println(val);
+                            stream.println(val);
                         }
                     } else {
                         pushIfNotNull(vm.callMethod(methodName, methodType, args));
@@ -673,12 +695,17 @@ public class BytecodeInterpreter {
                     }
                     break;
                 case Monitorenter:
+                case Monitorexit:
                     stack.pop(); // TODO: synchronize this
                     break;
-                // case Monitorexit:
                 // case Wide:
                 // case Multianewarray:
-                // case Ifnull:
+                case Ifnull:
+                    if (stack.pop().getValue() == null) {
+                        pc += instruction.getIndex();
+                        continue;
+                    }
+                    break;
                 case Ifnonnull:
                     if (stack.pop().getValue() != null) {
                         pc += instruction.getIndex();
@@ -760,7 +787,7 @@ public class BytecodeInterpreter {
             } else if (fieldType instanceof FieldType.Long) {
                 object.setField(fieldName, new Value(new FieldType.Long(), 0));
             } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
-                object.setField(fieldName, null);
+                object.setField(fieldName, Value.Null());
             } else {
                 throw new RuntimeException("unexpected field type in new: " + fieldType);
             }

@@ -20,13 +20,20 @@ public class VirtualMachine {
         classLoader = new ClassLoader(classPath);
 
         // initializeClass("java/lang/String");
-        initializeClass("java/lang/System");
+        Value.Class system = initializeClass("java/lang/System");
+        system.setField("security", Value.Null()); // TODO: implement field initializer
 
         callInitializeSystemClass();
-    }
 
-    public Value.Class loadClass(String klass) {
-        return initializeClass(klass.replace('.', '/'));
+        // TODO: implement field initializer
+        Value.Class runtime = initializeClass("java/lang/Runtime");
+        runtime.setField("currentRuntime", new Value(fieldType("Ljava/lang/Runtime;"), new Value.Object()));
+        Value.Class shutdown = initializeClass("java/lang/Shutdown");
+        shutdown.setField("state", new Value(new FieldType.Int(), 0));
+        shutdown.setField("lock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
+        shutdown.setField("haltLock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
+        shutdown.setField("hooks", new Value(new FieldType.ArrayType(fieldType("Ljava/lang/Runnable;")), new Value.Object[10]));
+        shutdown.setField("runFinalizersOnExit", new Value(new FieldType.Boolean(), false));
     }
 
     // Call an instance method
@@ -84,6 +91,7 @@ public class VirtualMachine {
     private Value.Class initializeClass(String klass) {
         ClassFile classFile = classLoader.loadClass(klass);
         Value.Class value = new Value.Class(classFile);
+        // TODO: initialize fields here!
         classMap.put(classFile.getThisClassName(), value);
         return value;
     }
@@ -114,8 +122,11 @@ public class VirtualMachine {
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             // TODO: Carve out this logic
             if (klass.getClassFile().getThisClassName().equals("java/lang/System") && method.getName().equals("arraycopy")) {
-                System.arraycopy(args[0].getValue(), (Integer)args[1].getValue(),
-                        args[2].getValue(), (Integer)args[3].getValue(), (Integer)args[4].getValue());
+                System.arraycopy(args[0].getValue(), (Integer) args[1].getValue(),
+                        args[2].getValue(), (Integer) args[3].getValue(), (Integer) args[4].getValue());
+                return null;
+            } else if (klass.getClassFile().getThisClassName().equals("java/lang/Shutdown") && method.getName().equals("halt0")) {
+                System.exit((int)args[0].getValue());
                 return null;
             } else {
                 throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());

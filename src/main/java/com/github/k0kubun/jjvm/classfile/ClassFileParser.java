@@ -1,7 +1,6 @@
 package com.github.k0kubun.jjvm.classfile;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -310,6 +309,7 @@ public class ClassFileParser {
     }
 
     private Instruction[] parseCode(CountedInputStream stream, int codeLength) throws IOException {
+        stream.resetCounter(); // TODO: just wrap counted counter here instead of using CountedInputStream from the beginning
         Instruction[] instructions = new Instruction[codeLength];
         for (int i = 0; i < codeLength;) {
             byte code = (byte)stream.readUnsignedByte();
@@ -317,25 +317,33 @@ public class ClassFileParser {
 
             byte[] operands;
             int argc = opcode.getArgc();
+            int padSize = 0;
             if (argc == -1) { // variable-length
+                int mod4 = stream.getCounter() % 4;
+                padSize = (mod4 == 0 ? 0 : 4 - mod4);
+                byte[] pad = new byte[padSize];
+                byte[] defaultByte = new byte[4];
+                stream.read(pad);
+                stream.read(defaultByte);
+
                 switch (opcode) {
+                    case Tableswitch:
+                        byte[] low = new byte[4];
+                        byte[] high = new byte[4];
+                        stream.read(low);
+                        stream.read(high);
+                        byte[] jumpOffsets = new byte[4 * (ByteBuffer.wrap(high).getInt() - ByteBuffer.wrap(low).getInt() + 1)];
+                        stream.read(jumpOffsets);
+
+                        operands = concatByteArrays(pad, defaultByte, low, high, jumpOffsets);
+                        break;
                     case Lookupswitch:
-                        int mod4 = stream.getCounter() % 4;
-                        byte[] pad = new byte[mod4 == 0 ? 0 : 4 - mod4];
-                        byte[] defaultByte = new byte[4];
                         byte[] nPairs = new byte[4];
-                        stream.read(pad);
-                        stream.read(defaultByte);
                         stream.read(nPairs);
                         byte[] pairs = new byte[8 * ByteBuffer.wrap(nPairs).getInt()];
                         stream.read(pairs);
 
-                        ByteBuffer buffer = ByteBuffer.allocate(pad.length + defaultByte.length + nPairs.length + pairs.length);
-                        buffer.put(pad);
-                        buffer.put(defaultByte);
-                        buffer.put(nPairs);
-                        buffer.put(pairs);
-                        operands = buffer.array();
+                        operands = concatByteArrays(pad, defaultByte, nPairs, pairs);
                         break;
                     default:
                         throw new RuntimeException("unexpected variable-length opcode: " + opcode.getName());
@@ -347,10 +355,23 @@ public class ClassFileParser {
                 }
             }
 
-            instructions[i] = new Instruction(opcode, operands);
+            instructions[i] = new Instruction(opcode, operands, padSize);
             i += 1 + operands.length;
         }
         return instructions;
+    }
+
+    private byte[] concatByteArrays(byte[]... arrays) {
+        int length = 0;
+        for (byte[] array : arrays) {
+            length += array.length;
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(length);
+        for (byte[] array : arrays) {
+            buffer.put(array);
+        }
+        return buffer.array();
     }
 
     // LineNumberTable_attribute {
@@ -658,6 +679,10 @@ public class ClassFileParser {
 
         public int available() throws IOException {
             return stream.available();
+        }
+
+        public void resetCounter() {
+            counter = 0;
         }
     }
 }

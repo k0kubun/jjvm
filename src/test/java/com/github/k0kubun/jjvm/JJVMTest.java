@@ -23,65 +23,80 @@ public class JJVMTest {
 
     @Test
     public void testHello() {
-        testJJVM("Hello");
+        compileAndTest("Hello");
     }
 
     @Test
     public void testInt() {
-        testJJVM("Int");
+        compileAndTest("Int");
     }
 
     @Test
     public void testLong() {
-        testJJVM("Long");
+        compileAndTest("Long");
     }
 
     @Test
     public void testFloat() {
-        testJJVM("Float");
+        compileAndTest("Float");
     }
 
     @Test
     public void testDouble() {
-        testJJVM("Double");
+        compileAndTest("Double");
     }
 
     @Test
     public void testString() {
-        testJJVM("Str");
+        compileAndTest("Str");
     }
 
     @Test
     public void testObject() {
-        testJJVM("Obj");
+        compileAndTest("Obj");
     }
 
     @Test
     public void testArg() {
-        testJJVM("Arg", "hello");
+        compileAndTest("Arg", "hello");
     }
 
     @Test
     public void testArray() {
-        testJJVM("Array");
+        compileAndTest("Array");
+    }
+
+    @Test
+    public void testBootstrapHelp() {
+        testJJVMCommand("-cp", "build/classes/java/main", "com.github.k0kubun.jjvm.JJVM", "-help");
     }
 
     @Test
     public void testConditional() {
-        testJJVM("Conditional");
+        compileAndTest("Conditional");
     }
 
-    private void testJJVM(String klass, String... args) {
+    private void compileAndTest(String klass, String... args) {
         CommandResult result = runCommand("javac", BASE_PATH + klass + ".java");
         assertEquals(0, result.status);
 
-        List<String> command = new ArrayList<>(Arrays.asList("java", "-cp", BASE_PATH, klass));
+        List<String> command = new ArrayList<>(Arrays.asList("-cp", BASE_PATH, klass));
         command.addAll(Arrays.asList(args));
+        testJJVMCommand(command);
+    }
+
+    private void testJJVMCommand(String... args) {
+        testJJVMCommand(Arrays.asList(args));
+    }
+
+    private void testJJVMCommand(List<String> args) {
+        List<String> command = new ArrayList<>(Arrays.asList("java"));
+        command.addAll(args);
         CommandResult java = runCommand(command);
         assertEquals(0, java.status);
 
-        command = new ArrayList<>(Arrays.asList("build/install/jjvm/bin/jjvm", "-cp", BASE_PATH, klass));
-        command.addAll(Arrays.asList(args));
+        command = new ArrayList<>(Arrays.asList("build/install/jjvm/bin/jjvm"));
+        command.addAll(args);
         CommandResult jjvm = runCommand(command);
         assertEquals(0, jjvm.status);
 

@@ -23,7 +23,7 @@ public class Value {
     private final java.lang.Object value;
 
     public static Value Null() {
-        return new Value((FieldType)null, null);
+        return new Value((FieldType)null, (Object)null);
     }
 
     public Value(FieldType.Boolean type, boolean value) {
@@ -60,6 +60,10 @@ public class Value {
     }
 
     public Value(FieldType.ArrayType type, Object[] value) {
+        this(type, (java.lang.Object)value);
+    }
+
+    public Value(FieldType type, Value.Class value) {
         this(type, (java.lang.Object)value);
     }
 

@@ -5,10 +5,12 @@ import java.nio.ByteBuffer;
 public class Instruction {
     private final Opcode opcode;
     private final byte[] operands;
+    private final int padSize;
 
-    public Instruction(Opcode opcode, byte[] operands) {
+    public Instruction(Opcode opcode, byte[] operands, int padSize) {
         this.opcode = opcode;
         this.operands = operands;
+        this.padSize = padSize;
     }
 
     public Opcode getOpcode() {
@@ -22,6 +24,15 @@ public class Instruction {
     // "indexbyte" operand
     public int getIndex() {
         return ByteBuffer.wrap(this.operands).getShort();
+    }
+
+    // For tableswitch/lookupswitch
+    public int getIntArg(int index) {
+        byte[] array = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            array[i] = operands[padSize + (index * 4) + i];
+        }
+        return ByteBuffer.wrap(array).getInt();
     }
 
     // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
@@ -212,7 +223,7 @@ public class Instruction {
         Goto(0xa7, 2), // branchbyte1, branchbyte2
         //Jsr(0xa8, ),
         //Ret(0xa9, ),
-        //Tableswitch(0xaa, ),
+        Tableswitch(0xaa, -1), // variable-length: <0-3 byte pad> defaultbyte1,2,3,4 npairs1,2,3,4 match-offset pairs...
         Lookupswitch(0xab, -1), // variable-length: <0-3 byte pad> defaultbyte1,2,3,4 npairs1,2,3,4 match-offset pairs...
         Ireturn(0xac, 0),
         Lreturn(0xad, 0),
