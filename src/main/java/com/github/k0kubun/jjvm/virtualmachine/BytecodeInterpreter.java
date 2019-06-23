@@ -644,7 +644,20 @@ public class BytecodeInterpreter {
                     stack.push(new Value(new FieldType.Int(), getArrayLength(receiver)));
                     break;
                 // case Athrow:
-                // case Checkcast:
+                case Checkcast:
+                    constValue = getConstant(instruction.getIndex());
+                    if (constValue instanceof ConstantInfo.Class) {
+                        receiver = stack.pop();
+                        className = getName((ConstantInfo.Class)constValue);
+                        if (receiver.getType().getType().equals(className.replace('/', '.'))) {
+                            stack.push(receiver);
+                        } else {
+                            throw new RuntimeException("This path of checkcast is not implemented yet");
+                        }
+                    } else {
+                        throw new RuntimeException("unexpected type of ConstantInfo in instanceof: " + constValue);
+                    }
+                    break;
                 case Instanceof:
                     constValue = getConstant(instruction.getIndex());
                     if (constValue instanceof ConstantInfo.Class) {
@@ -653,7 +666,7 @@ public class BytecodeInterpreter {
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
                             stack.push(new Value(new FieldType.Int(), 1));
                         } else {
-                            throw new RuntimeException("Not implemented path of instanceof :)");
+                            throw new RuntimeException("This path of instanceof is not implemented yet");
                         }
                     } else {
                         throw new RuntimeException("unexpected type of ConstantInfo in instanceof: " + constValue);

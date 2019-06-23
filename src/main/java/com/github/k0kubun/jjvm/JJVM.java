@@ -21,14 +21,14 @@ public class JJVM {
     }
 
     private static void printHelp() {
-        System.err.print(
+        System.err.println(
                 "Usage: jjvm [-options] class [args...]\n" +
                 "where options include\n" +
                 "    -cp <class search path of directories and zip/jar files>\n" +
                 "    -classpath <class search path of directories and zip/jar files>\n" +
                 "                  A : separated list of directories, JAR archives,\n" +
                 "                  and ZIP archives to search for class files.\n" +
-                "    -help         print this help message\n"
+                "    -help         print this help message"
         );
     }
 

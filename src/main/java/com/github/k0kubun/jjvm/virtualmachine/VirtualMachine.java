@@ -92,6 +92,7 @@ public class VirtualMachine {
     private void callInitializeSystemClass() {
         Value.Class system = classMap.get("java/lang/System");
         system.setField("out", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
+        system.setField("err", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
     }
 
     private FieldType fieldType(String type) {
@@ -109,6 +110,7 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
+        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             // TODO: Carve out this logic
             if (klass.getClassFile().getThisClassName().equals("java/lang/System") && method.getName().equals("arraycopy")) {
