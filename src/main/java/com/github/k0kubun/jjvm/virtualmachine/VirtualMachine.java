@@ -23,16 +23,9 @@ public class VirtualMachine {
 
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
+        initializeClass("java/lang/Class");
 
         callInitializeSystemClass();
-
-        // TODO: implement field initializer
-        Value.Class runtime = initializeClass("java/lang/Runtime");
-        runtime.setField("currentRuntime", new Value(fieldType("Ljava/lang/Runtime;"), new Value.Object()));
-        Value.Class shutdown = initializeClass("java/lang/Shutdown");
-        shutdown.setField("lock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
-        shutdown.setField("haltLock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
-        shutdown.setField("hooks", new Value(new FieldType.ArrayType(fieldType("Ljava/lang/Runnable;")), new Value.Object[10]));
     }
 
     // Call an instance method
@@ -71,7 +64,22 @@ public class VirtualMachine {
         return getClass(fieldType(String.format("L%s;", name)));
     }
 
-    Value defaultValueOfType(FieldType fieldType) {
+    void initializeObject(Value.Object object, String className) {
+        ClassFile classFile = this.getClass(className).getClassFile();
+        if (classFile.getSuperClassName() != null) {
+            initializeObject(object, classFile.getSuperClassName());
+        }
+
+        for (FieldInfo fieldInfo : classFile.getFields()) {
+            if (fieldInfo.getAccessFlags().contains(FieldInfo.AccessFlag.ACC_STATIC))
+                continue;
+
+            FieldType fieldType = fieldInfo.getDescriptor();
+            object.setField(fieldInfo.getName(), defaultValueOfType(fieldType));
+        }
+    }
+
+    private Value defaultValueOfType(FieldType fieldType) {
         // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
         if (fieldType instanceof FieldType.Int) {
             return new Value(new FieldType.Int(), 0);
@@ -132,8 +140,15 @@ public class VirtualMachine {
                 value.setField(field.getName(), defaultValueOfType(fieldType));
             }
         }
-
         classMap.put(classFile.getThisClassName(), value);
+
+        MethodInfo.Descriptor clinitType = ClassFileParser.DescriptorParser.parseMethod("()V");
+        try {
+            MethodInfo method = searchMethod(value, "<clinit>", clinitType);
+            executeMethod(value, method, new Value[0]);
+        } catch (NoMethodException e) {
+            // ignore undefined <clinit>:()V call
+        }
         return value;
     }
 
@@ -175,16 +190,42 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
-        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
+        // System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             // TODO: Carve out this logic
-            if (klass.getClassFile().getThisClassName().equals("java/lang/System") && method.getName().equals("arraycopy")) {
+            String className = klass.getClassFile().getThisClassName();
+            if (className.equals("java/lang/System") && method.getName().equals("arraycopy")) {
                 System.arraycopy(args[0].getValue(), (Integer) args[1].getValue(),
                         args[2].getValue(), (Integer) args[3].getValue(), (Integer) args[4].getValue());
                 return null;
-            } else if (klass.getClassFile().getThisClassName().equals("java/lang/Shutdown") && method.getName().equals("halt0")) {
+            } else if (method.getName().equals("registerNatives")) {
+                if (className.equals("java/lang/System")
+                        || className.equals("java/lang/Object")
+                        || className.equals("java/lang/Class")
+                        || className.equals("java/lang/ClassLoader")) {
+                    // nothing registered for now
+                } else {
+                    throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
+                }
+                return null;
+            } else if (className.equals("java/lang/Class") && method.getName().equals("desiredAssertionStatus0")) {
+                // not implemented properly yet. FIXME: Is it okay?
+                return new Value(new FieldType.Boolean(), true);
+            } else if (className.equals("java/lang/Class") && method.getName().equals("getPrimitiveClass")) {
+                // not implemented properly yet. FIXME: Is it okay?
+                return Value.Null();
+            } else if (className.equals("java/lang/Shutdown") && method.getName().equals("halt0")) {
                 System.exit((int)args[0].getValue());
                 return null;
+            } else if (className.equals("java/lang/Float") && method.getName().equals("floatToRawIntBits")) {
+                int result = Float.floatToRawIntBits((Float)args[0].getValue());
+                return new Value(new FieldType.Int(), result);
+            } else if (className.equals("java/lang/Double") && method.getName().equals("doubleToRawLongBits")) {
+                long result = Double.doubleToRawLongBits((Double)args[0].getValue());
+                return new Value(new FieldType.Long(), result);
+            } else if (className.equals("java/lang/Double") && method.getName().equals("longBitsToDouble")) {
+                double result = Double.longBitsToDouble((Long)args[0].getValue());
+                return new Value(new FieldType.Double(), result);
             } else {
                 throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
             }

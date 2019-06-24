@@ -21,6 +21,10 @@ public class Instruction {
         return operands;
     }
 
+    public int getByte() {
+        return ByteBuffer.wrap(new byte[]{ 0, operands[0] }).getShort();
+    }
+
     // "indexbyte" operand
     public int getIndex() {
         return ByteBuffer.wrap(this.operands).getShort();
@@ -189,14 +193,14 @@ public class Instruction {
         //L2f(0x89, 0),
         //L2d(0x8a, 0),
         F2i(0x8b, 0),
-        //F2l(0x8c, 0),
+        F2l(0x8c, 0),
         F2d(0x8d, 0),
-        //D2i(0x8e, 0),
+        D2i(0x8e, 0),
         D2l(0x8f, 0),
         D2f(0x90, 0),
         I2b(0x91, 0),
         I2c(0x92, 0),
-        //I2s(0x93, 0),
+        I2s(0x93, 0),
 
         // === Comparisons ===
         Lcmp(0x94, 0),

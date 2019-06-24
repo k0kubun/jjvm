@@ -1,12 +1,9 @@
 package com.github.k0kubun.jjvm.virtualmachine;
 
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
-import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Fieldref;
-import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
-import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.Instruction.Opcode;
 import com.github.k0kubun.jjvm.classfile.Instruction;
@@ -94,9 +91,11 @@ public class BytecodeInterpreter {
                 case Bipush:
                     stack.push(new Value(new FieldType.Int(), (int)instruction.getOperands()[0]));
                     break;
-                // case Sipush:
+                case Sipush:
+                    stack.push(new Value(new FieldType.Short(), (short)instruction.getIndex()));
+                    break;
                 case Ldc:
-                    ConstantInfo constValue = getConstant(instruction.getOperands()[0]);
+                    ConstantInfo constValue = getConstant(instruction.getByte());
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type, new Value.Object(((ConstantInfo.String)constValue).getString())));
@@ -126,7 +125,7 @@ public class BytecodeInterpreter {
                 case Fload:
                 case Dload:
                 case Aload:
-                    stack.push(locals[instruction.getOperands()[0]]);
+                    stack.push(locals[instruction.getByte()]);
                     break;
                 case Iload_0:
                 case Lload_0:
@@ -187,7 +186,7 @@ public class BytecodeInterpreter {
                 case Fstore:
                 case Dstore:
                 case Astore:
-                    locals[instruction.getOperands()[0]] = stack.pop();
+                    locals[instruction.getByte()] = stack.pop();
                     break;
                 case Istore_0:
                 case Lstore_0:
@@ -396,7 +395,10 @@ public class BytecodeInterpreter {
                     locals[instruction.getOperands()[0]] =
                             new Value(new FieldType.Int(), intv + instruction.getOperands()[1]);
                     break;
-                // case I2l:
+                case I2l:
+                    intv = (Integer)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Long(), (long)intv));
+                    break;
                 // case I2f:
                 // case I2d:
                 case L2i:
@@ -611,7 +613,7 @@ public class BytecodeInterpreter {
                     String className = getClassConstant(instruction.getIndex()).getName();
                     FieldType type = DescriptorParser.parseField(String.format("L%s;", className));
                     object = new Value.Object();
-                    initializeObject(object, className);
+                    vm.initializeObject(object, className);
                     stack.push(new Value(type, object));
                     break;
                 case Newarray:
@@ -759,21 +761,6 @@ public class BytecodeInterpreter {
             return ((char[])value.getValue()).length;
         } else {
             throw new RuntimeException("unexpected array type for arraylength: " + type.toString());
-        }
-    }
-
-    private void initializeObject(Value.Object object, String className) {
-        ClassFile classFile = vm.getClass(className).getClassFile();
-        if (classFile.getSuperClassName() != null) {
-            initializeObject(object, classFile.getSuperClassName());
-        }
-
-        for (FieldInfo fieldInfo : classFile.getFields()) {
-            if (fieldInfo.getAccessFlags().contains(FieldInfo.AccessFlag.ACC_STATIC))
-                continue;
-
-            FieldType fieldType = fieldInfo.getDescriptor();
-            object.setField(fieldInfo.getName(), vm.defaultValueOfType(fieldType));
         }
     }
 

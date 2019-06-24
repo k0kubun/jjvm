@@ -158,7 +158,7 @@ public class ClassFileDisassembler {
         } else if (attribute instanceof AttributeInfo.SourceFile) {
             String name = utf8Constant(((AttributeInfo.SourceFile)attribute).getIndex()).getString();
             builder.append(String.format("%s: \"%s\"\n", attribute.getName(), name));
-        } else {
+        } else if (attribute != null) { // Double/Long may leave it null
             builder.append(String.format("%s: [TODO]\n", attribute.getName()));
         }
         return builder.toString();
@@ -177,7 +177,7 @@ public class ClassFileDisassembler {
                 int index;
                 switch (opcode) {
                     case Ldc:
-                        index = instruction.getOperands()[0];
+                        index = instruction.getByte();
                         break;
                     default:
                         index = instruction.getIndex();

@@ -13,6 +13,7 @@ public class Value {
     // `value` should have a value serialized depending on the `type`. The caller of
     // getValue() is responsible for deserializing the `value` depending on the `type`.
     //   I                   => Integer
+    //   S                   => Integer
     //   [I                  => int[]
     //   Ljava/lang/String;  => Value.Object
     //   [Ljava/lang/String; => Value.Object[]
@@ -32,6 +33,10 @@ public class Value {
 
     public Value(FieldType.Int type, int value) {
         this(type, (Integer)value);
+    }
+
+    public Value(FieldType.Short type, short value) {
+        this(type, (int)value);
     }
 
     public Value(FieldType.Long type, long value) {
@@ -83,7 +88,7 @@ public class Value {
 
     // This should be used only when type conversion is needed. Indicator: "must be of type int"
     public int getIntValue() {
-        if (type instanceof FieldType.Int) {
+        if (type instanceof FieldType.Int || type instanceof FieldType.Short) {
             return (int)value;
         } else if (type instanceof FieldType.Char) {
             return (int)((char)value);
@@ -91,29 +96,6 @@ public class Value {
             return (Boolean)value ? 1 : 0;
         } else {
             throw new RuntimeException("unexpected type used with getIntValue: " + type);
-        }
-    }
-
-    // Value.Class representes an instance of a class insntace. It holds static field values.
-    public static class Class {
-        private final ClassFile classFile;
-        private final Map<String, Value> fields;
-
-        public Class(ClassFile classFile) {
-            this.classFile = classFile;
-            this.fields = new HashMap<>();
-        }
-
-        public ClassFile getClassFile() {
-            return classFile;
-        }
-
-        public Value getField(String field) {
-            return fields.get(field);
-        }
-
-        public void setField(String field, Value value) {
-            fields.put(field, value);
         }
     }
 
@@ -141,6 +123,26 @@ public class Value {
 
         public void setField(String field, Value value) {
             fields.put(field, value);
+        }
+    }
+
+    // Value.Class representes an instance of a class insntace. It holds static field values.
+    public static class Class extends Object {
+        private final ClassFile classFile;
+
+        public Class(ClassFile classFile) {
+            super();
+            this.classFile = classFile;
+            // XXX: how Class(ClassLoader) constructure is called?
+            Value.Object classLoader = new Value.Object();
+            setField("classLoader", new Value(new FieldType.ObjectType("java/lang/ClassLoader"), classLoader));
+            // Not using VirtualMachine.initializeObject to avoid circular calls
+            classLoader.setField("assertionLock", new Value(new FieldType.ObjectType("java/lang/Object"), new Value.Object()));
+            classLoader.setField("classAssertionStatus", Value.Null());
+        }
+
+        public ClassFile getClassFile() {
+            return classFile;
         }
     }
 }
