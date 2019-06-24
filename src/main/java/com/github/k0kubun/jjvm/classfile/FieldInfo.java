@@ -7,7 +7,7 @@ public class FieldInfo {
     private final Set<AccessFlag> accessFlags;
     private final String name;
     private final FieldType descriptor;
-    private final AttributeInfo[] attributes; // not used yet
+    private final AttributeInfo[] attributes;
 
     FieldInfo(int accessFlags, int nameIndex, int descriptorIndex, AttributeInfo[] attributes, ConstantInfo[] constantPool) {
         this.accessFlags = AccessFlag.fromInt(accessFlags);
@@ -27,6 +27,15 @@ public class FieldInfo {
 
     public FieldType getDescriptor() {
         return descriptor;
+    }
+
+    public AttributeInfo.ConstantValue getConstantValueAttribute() {
+        for (AttributeInfo attribute : attributes) {
+            if (attribute.getName().equals("ConstantValue")) {
+                return (AttributeInfo.ConstantValue)attribute;
+            }
+        }
+        return null;
     }
 
     public enum AccessFlag {

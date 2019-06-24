@@ -3,6 +3,7 @@ package com.github.k0kubun.jjvm.virtualmachine;
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
 import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser;
+import com.github.k0kubun.jjvm.classfile.ConstantInfo;
 import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
@@ -87,6 +88,34 @@ public class VirtualMachine {
         }
     }
 
+    private Value getConstantValue(FieldType fieldType, ConstantInfo constantValue) {
+        if (constantValue instanceof ConstantInfo.Long) {
+            return new Value((FieldType.Long)fieldType, ((ConstantInfo.Long)constantValue).getValue());
+        } else if (constantValue instanceof ConstantInfo.Float) {
+            return new Value((FieldType.Float)fieldType, ((ConstantInfo.Float)constantValue).getValue());
+        } else if (constantValue instanceof ConstantInfo.Double) {
+            return new Value((FieldType.Double)fieldType, ((ConstantInfo.Double)constantValue).getValue());
+        } else if (constantValue instanceof ConstantInfo.Integer) {
+            if (fieldType instanceof FieldType.Int) {
+                return new Value((FieldType.Int) fieldType, ((ConstantInfo.Integer) constantValue).getValue());
+            // } else if (fieldType instanceof FieldType.Short) {
+            //     return new Value((FieldType.Short) fieldType, ((ConstantInfo.Short) constantValue).getValue());
+            // } else if (fieldType instanceof FieldType.Char) {
+            //     return new Value((FieldType.Char) fieldType, ((ConstantInfo.Char) constantValue).getValue());
+            // } else if (fieldType instanceof FieldType.Byte) {
+            //     return new Value((FieldType.Byte) fieldType, ((ConstantInfo.Byte) constantValue).getValue());
+            } else if (fieldType instanceof FieldType.Boolean) {
+                return new Value((FieldType.Boolean) fieldType, ((ConstantInfo.Integer) constantValue).getValue() != 0);
+            } else {
+                throw new RuntimeException("unexpected FieldType in ConstantValue: " + fieldType);
+            }
+        } else if (constantValue instanceof ConstantInfo.String) {
+            return new Value(fieldType, new Value.Object(((ConstantInfo.String)constantValue).getString()));
+        } else {
+            throw new RuntimeException("unexpected ConstantInfo in ConstantValue: " + constantValue);
+        }
+    }
+
     private Value.Class initializeClass(String klass) {
         ClassFile classFile = classLoader.loadClass(klass);
         Value.Class value = new Value.Class(classFile);
@@ -94,8 +123,14 @@ public class VirtualMachine {
         for (FieldInfo field : classFile.getFields()) {
             if (!field.getAccessFlags().contains(FieldInfo.AccessFlag.ACC_STATIC))
                 continue;
+
             FieldType fieldType = field.getDescriptor();
-            value.setField(field.getName(), defaultValueOfType(fieldType));
+            if (field.getConstantValueAttribute() != null) {
+                ConstantInfo constantValue = field.getConstantValueAttribute().getConstantValue();
+                value.setField(field.getName(), getConstantValue(fieldType, constantValue));
+            } else {
+                value.setField(field.getName(), defaultValueOfType(fieldType));
+            }
         }
 
         classMap.put(classFile.getThisClassName(), value);

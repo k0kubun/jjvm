@@ -1,5 +1,6 @@
 package com.github.k0kubun.jjvm.classfile;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -304,6 +305,8 @@ public class ClassFileParser {
                 attributes[j] = parseStackMapTableAttribute(stream);
             } else if (attributeName.equals("SourceFile")) {
                 attributes[j] = parseSourceFileAttribute(stream);
+            } else if (attributeName.equals("ConstantValue")) {
+                attributes[j] = parseConstantValueAttribute(stream, constantPool);
             } else {
                 stream.skipBytes(attributeLength);
                 attributes[j] = new AttributeInfo(attributeName);
@@ -535,6 +538,16 @@ public class ClassFileParser {
     private AttributeInfo.SourceFile parseSourceFileAttribute(DataInputStream stream) throws IOException {
         int index = stream.readUnsignedShort();
         return new AttributeInfo.SourceFile(index);
+    }
+
+    // ConstantValue_attribute {
+    //     u2 attribute_name_index;
+    //     u4 attribute_length;
+    //     u2 constantvalue_index;
+    // }
+    private AttributeInfo.ConstantValue parseConstantValueAttribute(DataInputStream stream, ConstantInfo[] constantPool) throws IOException {
+        int index = stream.readUnsignedShort();
+        return new AttributeInfo.ConstantValue(constantPool[index - 1]);
     }
 
     private int[] readUnsignedShorts(DataInputStream stream, int length) throws IOException {

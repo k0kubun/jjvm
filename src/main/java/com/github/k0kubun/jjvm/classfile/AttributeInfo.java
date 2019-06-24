@@ -224,4 +224,17 @@ public class AttributeInfo {
             return index;
         }
     }
+
+    public static class ConstantValue extends AttributeInfo {
+        private final ConstantInfo constantValue;
+
+        ConstantValue(ConstantInfo constantValue) {
+            super("ConstantValue");
+            this.constantValue = constantValue;
+        }
+
+        public ConstantInfo getConstantValue() {
+            return constantValue;
+        }
+    }
 }

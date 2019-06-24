@@ -153,11 +153,15 @@ public class ConstantInfo {
     }
 
     public static class Integer extends ConstantInfo {
-        private final int bytes;
+        private final int value;
 
-        Integer(int bytes) {
+        Integer(int value) {
             super(ConstantType.Integer);
-            this.bytes = bytes;
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
         }
     }
 
