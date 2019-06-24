@@ -7,7 +7,7 @@ public class Instruction {
     private final byte[] operands;
     private final int padSize;
 
-    public Instruction(Opcode opcode, byte[] operands, int padSize) {
+    Instruction(Opcode opcode, byte[] operands, int padSize) {
         this.opcode = opcode;
         this.operands = operands;
         this.padSize = padSize;

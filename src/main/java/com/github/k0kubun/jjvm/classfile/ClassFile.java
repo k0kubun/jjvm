@@ -17,8 +17,8 @@ public class ClassFile {
 
     private final static int MAGIC = 0xCAFEBABE;
 
-    public ClassFile(int magic, int minorVersion, int majorVersion, ConstantInfo[] constantPool, int accessFlags, int thisClass,
-                     int superClass, int[] interfaces, FieldInfo[] fields, MethodInfo[] methods, AttributeInfo[] attributes) {
+    ClassFile(int magic, int minorVersion, int majorVersion, ConstantInfo[] constantPool, int accessFlags, int thisClass,
+              int superClass, int[] interfaces, FieldInfo[] fields, MethodInfo[] methods, AttributeInfo[] attributes) {
         if (magic != MAGIC) {
             throw new RuntimeException(String.format("unexpected magic: 0x%X", magic));
         }
@@ -34,11 +34,11 @@ public class ClassFile {
         this.attributes = attributes;
     }
 
-    public int getMinorVersion() {
+    int getMinorVersion() {
         return minorVersion;
     }
 
-    public int getMajorVersion() {
+    int getMajorVersion() {
         return majorVersion;
     }
 
@@ -72,7 +72,7 @@ public class ClassFile {
         return constantPool;
     }
 
-    public AttributeInfo[] getAttributes() {
+    AttributeInfo[] getAttributes() {
         return attributes;
     }
 
@@ -96,7 +96,7 @@ public class ClassFile {
             return value;
         }
 
-        public static List<AccessFlag> fromInt(int accessFlags) {
+        static List<AccessFlag> fromInt(int accessFlags) {
             List<AccessFlag> list = new ArrayList<>();
             for (AccessFlag flag : AccessFlag.values()) {
                 if ((flag.getValue() & accessFlags) != 0) {

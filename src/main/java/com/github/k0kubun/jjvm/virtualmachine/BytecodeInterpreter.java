@@ -5,8 +5,6 @@ import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser.DescriptorParser;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Fieldref;
-import com.github.k0kubun.jjvm.classfile.ConstantInfo.Methodref;
-import com.github.k0kubun.jjvm.classfile.ConstantInfo.NameAndType;
 import com.github.k0kubun.jjvm.classfile.ConstantInfo.Utf8;
 import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
@@ -101,13 +99,12 @@ public class BytecodeInterpreter {
                     ConstantInfo constValue = getConstant(instruction.getOperands()[0]);
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
-                        String str = ((Utf8) getConstant(((ConstantInfo.String) constValue).getNameIndex())).getString();
-                        stack.push(new Value(type, new Value.Object(str)));
+                        stack.push(new Value(type, new Value.Object(((ConstantInfo.String)constValue).getString())));
                     } else if (constValue instanceof ConstantInfo.Float) {
                         stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Class) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/Class;"); // XXX: Is the class an object type...?
-                        String name = getName((ConstantInfo.Class)constValue);
+                        String name = ((ConstantInfo.Class)constValue).getName();
                         stack.push(new Value(type, vm.getClass(name)));
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
@@ -554,36 +551,30 @@ public class BytecodeInterpreter {
                 case Return:
                     return null;
                 case Getstatic:
-                    Fieldref field = getConstant(instruction.getIndex());
-                    NameAndType nameAndType = getConstant(field.getNameAndTypeIndex());
-                    Value.Class klass = vm.getClass(getName(getConstant(field.getClassIndex())));
-                    String name = getName(nameAndType);
+                    Fieldref field = getFieldConstant(instruction.getIndex());
+                    Value.Class klass = vm.getClass(field.getClassInfo().getName());
+                    String name = field.getNameAndType().getName();
                     stack.push(klass.getField(name)); // XXX: do we need to check type here?
                     break;
                 case Putstatic:
-                    field = getConstant(instruction.getIndex());
-                    nameAndType = getConstant(field.getNameAndTypeIndex());
-                    klass = vm.getClass(getName(getConstant(field.getClassIndex())));
-                    klass.setField(getName(nameAndType), stack.pop());
+                    field = getFieldConstant(instruction.getIndex());
+                    klass = vm.getClass(field.getClassInfo().getName());
+                    klass.setField(field.getNameAndType().getName(), stack.pop());
                     break;
                 case Getfield:
-                    field = getConstant(instruction.getIndex());
-                    nameAndType = getConstant(field.getNameAndTypeIndex());
-
+                    field = getFieldConstant(instruction.getIndex());
                     Value.Object object = (Value.Object)stack.pop().getValue();
-                    stack.push(object.getField(getName(nameAndType)));
+                    stack.push(object.getField(field.getNameAndType().getName()));
                     break;
                 case Putfield:
-                    field = getConstant(instruction.getIndex());
-                    nameAndType = getConstant(field.getNameAndTypeIndex());
-
+                    field = getFieldConstant(instruction.getIndex());
                     arg = stack.pop();
                     receiver = stack.pop();
-                    ((Value.Object)receiver.getValue()).setField(getName(nameAndType), arg);
+                    ((Value.Object)receiver.getValue()).setField(field.getNameAndType().getName(), arg);
                     break;
                 case Invokevirtual:
-                    String methodName = getMethodName(instruction.getIndex());
-                    Descriptor methodType = getMethodType(instruction.getIndex());
+                    String methodName = getMethodConstant(instruction.getIndex()).getNameAndType().getName();
+                    Descriptor methodType = getMethodConstant(instruction.getIndex()).getNameAndType().getMethodDescriptor();
                     Value[] args = popStack(methodType.getParameters().size() + 1); // including receiver
 
                     if (args[0].getType().getType().equals("java.io.PrintStream") && args.length == 2
@@ -601,23 +592,23 @@ public class BytecodeInterpreter {
                     }
                     break;
                 case Invokespecial:
-                    String methodClassName = getMethodClassName(instruction.getIndex());
-                    methodName = getMethodName(instruction.getIndex());
-                    methodType = getMethodType(instruction.getIndex());
+                    String methodClassName = getMethodConstant(instruction.getIndex()).getClassInfo().getName();
+                    methodName = getMethodConstant(instruction.getIndex()).getNameAndType().getName();
+                    methodType = getMethodConstant(instruction.getIndex()).getNameAndType().getMethodDescriptor();
                     args = popStack(methodType.getParameters().size() + 1); // including receiver
                     pushIfNotNull(vm.callMethodSpecial(methodClassName, methodName, methodType, args));
                     break;
                 case Invokestatic:
-                    methodClassName = getMethodClassName(instruction.getIndex());
-                    methodName = getMethodName(instruction.getIndex());
-                    methodType = getMethodType(instruction.getIndex());
+                    methodClassName = getMethodConstant(instruction.getIndex()).getClassInfo().getName();
+                    methodName = getMethodConstant(instruction.getIndex()).getNameAndType().getName();
+                    methodType = getMethodConstant(instruction.getIndex()).getNameAndType().getMethodDescriptor();
                     args = popStack(methodType.getParameters().size());
                     pushIfNotNull(vm.callStaticMethod(methodClassName, methodName, methodType, args));
                     break;
                 // case Invokeinterface:
                 // case Invokedynamic:
                 case New:
-                    String className = getName(getConstant(instruction.getIndex()));
+                    String className = getClassConstant(instruction.getIndex()).getName();
                     FieldType type = DescriptorParser.parseField(String.format("L%s;", className));
                     object = new Value.Object();
                     initializeObject(object, className);
@@ -656,7 +647,7 @@ public class BytecodeInterpreter {
                     break;
                 case Anewarray:
                     arg = stack.pop();
-                    className = getName(getConstant(instruction.getIndex()));
+                    className = getClassConstant(instruction.getIndex()).getName();
                     stack.push(new Value(
                             new FieldType.ArrayType(new FieldType.ObjectType(className)),
                             new Value.Object[(Integer)arg.getValue()]));
@@ -670,7 +661,7 @@ public class BytecodeInterpreter {
                     constValue = getConstant(instruction.getIndex());
                     if (constValue instanceof ConstantInfo.Class) {
                         receiver = stack.pop();
-                        className = getName((ConstantInfo.Class)constValue);
+                        className = ((ConstantInfo.Class)constValue).getName();
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
                             stack.push(receiver);
                         } else {
@@ -684,7 +675,7 @@ public class BytecodeInterpreter {
                     constValue = getConstant(instruction.getIndex());
                     if (constValue instanceof ConstantInfo.Class) {
                         receiver = stack.pop();
-                        className = getName((ConstantInfo.Class)constValue);
+                        className = ((ConstantInfo.Class)constValue).getName();
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
                             stack.push(new Value(new FieldType.Int(), 1));
                         } else {
@@ -778,8 +769,8 @@ public class BytecodeInterpreter {
         }
 
         for (FieldInfo fieldInfo : classFile.getFields()) {
-            FieldType fieldType = DescriptorParser.parseField(((Utf8)classFile.getConstantPool()[fieldInfo.getDescriptorIndex() - 1]).getString());
-            String fieldName = ((Utf8)classFile.getConstantPool()[fieldInfo.getNameIndex() - 1]).getString();
+            FieldType fieldType = fieldInfo.getDescriptor();
+            String fieldName = fieldInfo.getName();
 
             // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
             if (fieldType instanceof FieldType.Int) {
@@ -794,31 +785,19 @@ public class BytecodeInterpreter {
         }
     }
 
-    private String getMethodClassName(int methodIndex) {
-        Methodref methodref = getConstant(methodIndex);
-        ConstantInfo.Class klass = getConstant(methodref.getClassIndex());
-        return getName(klass);
+    private ConstantInfo.Class getClassConstant(int index) {
+        return (ConstantInfo.Class)getConstant(index);
     }
 
-    private String getMethodName(int methodIndex) {
-        Methodref methodref = getConstant(methodIndex);
-        NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
-        return getName(nameAndType);
+    private ConstantInfo.Fieldref getFieldConstant(int index) {
+        return (ConstantInfo.Fieldref)getConstant(index);
     }
 
-    private Descriptor getMethodType(int methodIndex) {
-        Methodref methodref = getConstant(methodIndex);
-        NameAndType nameAndType = getConstant(methodref.getNameAndTypeIndex());
-        String descriptor = ((Utf8)getConstant(nameAndType.getDescriptorIndex())).getString();
-        return DescriptorParser.parseMethod(descriptor);
+    private ConstantInfo.Methodref getMethodConstant(int index) {
+        return (ConstantInfo.Methodref)getConstant(index);
     }
 
-    private String getName(ConstantInfo.NamedInfo constant) {
-        return ((ConstantInfo.Utf8)getConstant(constant.getNameIndex())).getString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends ConstantInfo> T getConstant(int index) {
-        return (T)thisClass.getClassFile().getConstantPool()[index - 1];
+    private ConstantInfo getConstant(int index) {
+        return thisClass.getClassFile().getConstantPool()[index - 1];
     }
 }

@@ -1,11 +1,9 @@
 package com.github.k0kubun.jjvm.classfile;
 
-import java.util.List;
-
 public class AttributeInfo {
     private final String name;
 
-    public AttributeInfo(String name) {
+    AttributeInfo(String name) {
         this.name = name;
     }
 
@@ -20,7 +18,7 @@ public class AttributeInfo {
         private final ExceptionTableEntry[] exceptionTable;
         private final AttributeInfo[] attributes;
 
-        public Code(int maxStack, int maxLocals, Instruction[] instructions, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
+        Code(int maxStack, int maxLocals, Instruction[] instructions, ExceptionTableEntry[] exceptionTable, AttributeInfo[] attributes) {
             super("Code");
             this.maxStack = maxStack;
             this.maxLocals = maxLocals;
@@ -55,7 +53,7 @@ public class AttributeInfo {
             private final int handlerPc;
             private final int catchType;
 
-            public ExceptionTableEntry(int startPc, int endPc, int handlerPc, int catchType) {
+            ExceptionTableEntry(int startPc, int endPc, int handlerPc, int catchType) {
                 this.startPc = startPc;
                 this.endPc = endPc;
                 this.handlerPc = handlerPc;
@@ -83,7 +81,7 @@ public class AttributeInfo {
     public static class LineNumberTable extends AttributeInfo {
         private final LineNumberEntry[] lineNumberTable;
 
-        public LineNumberTable(LineNumberEntry[] lineNumberTable) {
+        LineNumberTable(LineNumberEntry[] lineNumberTable) {
             super("LineNumberTable");
             this.lineNumberTable = lineNumberTable;
         }
@@ -96,7 +94,7 @@ public class AttributeInfo {
             private final int startPc;
             private final int lineNumber;
 
-            public LineNumberEntry(int startPc, int lineNumber) {
+            LineNumberEntry(int startPc, int lineNumber) {
                 this.startPc = startPc;
                 this.lineNumber = lineNumber;
             }
@@ -114,7 +112,7 @@ public class AttributeInfo {
     public static class StackMapTable extends AttributeInfo {
         private final StackMapFrame[] entries;
 
-        public StackMapTable(StackMapFrame[] entries) {
+        StackMapTable(StackMapFrame[] entries) {
             super("StackMapTable");
             this.entries = entries;
         }
@@ -122,13 +120,13 @@ public class AttributeInfo {
         public static class StackMapFrame {
             private final int tag;
 
-            public StackMapFrame(int tag) {
+            StackMapFrame(int tag) {
                 this.tag = tag;
             }
 
             // 0-63
             public static class Same extends StackMapFrame {
-                public Same(int tag) {
+                Same(int tag) {
                     super(tag);
                 }
             }
@@ -137,7 +135,7 @@ public class AttributeInfo {
             public static class SameLocals1StackItem extends StackMapFrame {
                 private final VerificationTypeInfo[] stack;
 
-                public SameLocals1StackItem(int tag, VerificationTypeInfo[] stack) {
+                SameLocals1StackItem(int tag, VerificationTypeInfo[] stack) {
                     super(tag);
                     this.stack = stack;
                 }
@@ -151,7 +149,7 @@ public class AttributeInfo {
                 private final int offsetDelta;
                 private final VerificationTypeInfo[] stack;
 
-                public SameLocals1StackItemExtended(int tag, int offsetDelta, VerificationTypeInfo[] stack) {
+                SameLocals1StackItemExtended(int tag, int offsetDelta, VerificationTypeInfo[] stack) {
                     super(tag);
                     this.offsetDelta = offsetDelta;
                     this.stack = stack;
@@ -162,7 +160,7 @@ public class AttributeInfo {
             public static class Chop extends StackMapFrame {
                 private final int offsetDelta;
 
-                public Chop(int tag, int offsetDelta) {
+                Chop(int tag, int offsetDelta) {
                     super(tag);
                     this.offsetDelta = offsetDelta;
                 }
@@ -172,7 +170,7 @@ public class AttributeInfo {
             public static class SameFrameExtended extends StackMapFrame {
                 private final int offsetDelta;
 
-                public SameFrameExtended(int tag, int offsetDelta) {
+                SameFrameExtended(int tag, int offsetDelta) {
                     super(tag);
                     this.offsetDelta = offsetDelta;
                 }
@@ -183,7 +181,7 @@ public class AttributeInfo {
                 private final int offsetDelta;
                 private final VerificationTypeInfo[] locals;
 
-                public Append(int tag, int offsetDelta, VerificationTypeInfo[] locals) {
+                Append(int tag, int offsetDelta, VerificationTypeInfo[] locals) {
                     super(tag);
                     this.offsetDelta = offsetDelta;
                     this.locals = locals;
@@ -196,7 +194,7 @@ public class AttributeInfo {
                 private final VerificationTypeInfo[] locals;
                 private final VerificationTypeInfo[] stack;
 
-                public FullFrame(int tag, int offsetDelta, VerificationTypeInfo[] locals, VerificationTypeInfo[] stack) {
+                FullFrame(int tag, int offsetDelta, VerificationTypeInfo[] locals, VerificationTypeInfo[] stack) {
                     super(tag);
                     this.offsetDelta = offsetDelta;
                     this.locals = locals;
@@ -208,7 +206,7 @@ public class AttributeInfo {
         public static class VerificationTypeInfo {
             private final int tag;
 
-            public VerificationTypeInfo(int tag) {
+            VerificationTypeInfo(int tag) {
                 this.tag = tag;
             }
         }
@@ -217,7 +215,7 @@ public class AttributeInfo {
     public static class SourceFile extends AttributeInfo {
         private final int index;
 
-        public SourceFile(int index) {
+        SourceFile(int index) {
             super("SourceFile");
             this.index = index;
         }

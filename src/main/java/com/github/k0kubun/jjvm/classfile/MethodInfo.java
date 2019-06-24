@@ -11,7 +11,7 @@ public class MethodInfo {
     private final Descriptor descriptor;
     private final Map<String, AttributeInfo> attributes;
 
-    public MethodInfo(int accessFlags, String name, Descriptor descriptor, AttributeInfo[] attributes) {
+    MethodInfo(int accessFlags, String name, Descriptor descriptor, AttributeInfo[] attributes) {
         this.accessFlags = AccessFlag.fromInt(accessFlags);
         this.name = name;
         this.descriptor = descriptor;
@@ -92,7 +92,7 @@ public class MethodInfo {
         private final ReturnDescriptor returnDescriptor;
         private final List<FieldType> parameters;
 
-        public Descriptor(String raw, ReturnDescriptor returnDescriptor, List<FieldType> parameters) {
+        Descriptor(String raw, ReturnDescriptor returnDescriptor, List<FieldType> parameters) {
             this.raw = raw;
             this.returnDescriptor = returnDescriptor;
             this.parameters = parameters;

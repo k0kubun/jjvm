@@ -3,7 +3,7 @@ package com.github.k0kubun.jjvm.classfile;
 public class FieldType implements MethodInfo.ReturnDescriptor {
     private final String type;
 
-    public FieldType(String type) {
+    FieldType(String type) {
         this.type = type;
     }
 
@@ -20,7 +20,7 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
     // S	short	signed short
     // Z	boolean	true or false
     public static class BaseType extends FieldType {
-        public BaseType(String type) {
+        BaseType(String type) {
             super(type);
         }
     }

@@ -36,6 +36,7 @@ public class ClassFileParser {
         int majorVersion = stream.readUnsignedShort();
         int constantPoolCount = stream.readUnsignedShort();
         ConstantInfo[] constantPool = parseConstantPool(stream, constantPoolCount - 1);
+        resolveConstantPoolReferences(constantPool);
         int accessFlags = stream.readUnsignedShort();
         int thisClass = stream.readUnsignedShort();
         int superClass = stream.readUnsignedShort();
@@ -198,6 +199,46 @@ public class ClassFileParser {
         return constantPool;
     }
 
+    // Resolve reference to constantPool by index in constants
+    private void resolveConstantPoolReferences(ConstantInfo[] constantPool) {
+        for (ConstantInfo constant : constantPool) {
+            if (constant instanceof ConstantInfo.Class) {
+                ConstantInfo.Class info = (ConstantInfo.Class)constant;
+                info.setName(((ConstantInfo.Utf8)constantPool[info.getNameIndex() - 1]).getString());
+            } else if (constant instanceof ConstantInfo.Fieldref) {
+                ConstantInfo.Fieldref info = (ConstantInfo.Fieldref)constant;
+                info.setClassInfo((ConstantInfo.Class)constantPool[info.getClassIndex() - 1]);
+                info.setNameAndType((ConstantInfo.NameAndType)constantPool[info.getNameAndTypeIndex() - 1]);
+            } else if (constant instanceof ConstantInfo.Methodref) {
+                ConstantInfo.Methodref info = (ConstantInfo.Methodref)constant;
+                info.setClassInfo((ConstantInfo.Class)constantPool[info.getClassIndex() - 1]);
+                info.setNameAndType((ConstantInfo.NameAndType)constantPool[info.getNameAndTypeIndex() - 1]);
+            } else if (constant instanceof ConstantInfo.InterfaceMethodref) {
+                // not used yet
+            } else if (constant instanceof ConstantInfo.String) {
+                ConstantInfo.String info = (ConstantInfo.String)constant;
+                info.setString(((ConstantInfo.Utf8)constantPool[info.getStringIndex() - 1]).getString());
+            } else if (constant instanceof ConstantInfo.Integer
+                    || constant instanceof ConstantInfo.Float
+                    || constant instanceof ConstantInfo.Long
+                    || constant instanceof ConstantInfo.Double) {
+                // not needed
+            } else if (constant instanceof ConstantInfo.NameAndType) {
+                ConstantInfo.NameAndType info = (ConstantInfo.NameAndType)constant;
+                info.setName(((ConstantInfo.Utf8)constantPool[info.getNameIndex() - 1]).getString());
+                info.setDescriptor(((ConstantInfo.Utf8)constantPool[info.getDescriptorIndex() - 1]).getString());
+            } else if (constant instanceof ConstantInfo.Utf8) {
+                // not needed
+            } else if (constant instanceof ConstantInfo.MethodHandle
+                    || constant instanceof ConstantInfo.MethodType
+                    || constant instanceof ConstantInfo.InvokeDynamic) {
+                // not used yet
+            } else if (constant != null) { // Long/Double may leave create a blank space
+                throw new UnsupportedOperationException("Unhandled ConstantType: " + constant);
+            }
+        }
+    }
+
     // field_info {
     //     u2             access_flags;
     //     u2             name_index;
@@ -213,7 +254,7 @@ public class ClassFileParser {
             int descriptorIndex = stream.readUnsignedShort();
             int attributesCount = stream.readUnsignedShort();
             AttributeInfo[] attributes = parseAttributes(stream, attributesCount, constantPool);
-            fields[i] = new FieldInfo(accessFlags, nameIndex, descriptorIndex, attributes);
+            fields[i] = new FieldInfo(accessFlags, nameIndex, descriptorIndex, attributes, constantPool);
         }
         return fields;
     }
@@ -601,7 +642,7 @@ public class ClassFileParser {
         private final String string;
         private int pos;
 
-        public StringScanner(String string) {
+        StringScanner(String string) {
             this.string = string;
             this.pos = 0;
         }
@@ -629,7 +670,7 @@ public class ClassFileParser {
         private final DataInputStream stream;
         private int counter;
 
-        public CountedInputStream(DataInputStream in) {
+        CountedInputStream(DataInputStream in) {
             stream = in;
             counter = 0;
         }
@@ -638,47 +679,14 @@ public class ClassFileParser {
             return counter;
         }
 
-        public byte readByte() throws IOException {
-            counter++;
-            return stream.readByte();
-        }
-
         public int readUnsignedByte() throws IOException {
             counter++;
             return stream.readUnsignedByte();
         }
 
-        public int readUnsignedShort() throws IOException {
-            counter += 2;
-            return stream.readUnsignedShort();
-        }
-
-        public int readInt() throws IOException {
-            counter += 4;
-            return stream.readInt();
-        }
-
-        public long readLong() throws IOException {
-            counter += 8;
-            return stream.readLong();
-        }
-
-        public void skipBytes(int n) throws IOException {
-            counter += n;
-            stream.skipBytes(n);
-        }
-
         public void read(byte[] buf) throws IOException {
             counter += buf.length;
             stream.read(buf);
-        }
-
-        public int read() throws IOException {
-            return stream.read();
-        }
-
-        public int available() throws IOException {
-            return stream.available();
         }
     }
 }

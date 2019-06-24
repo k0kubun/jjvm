@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 public class ConstantInfo {
     private final ConstantType type;
 
-    public ConstantInfo(ConstantType type) {
+    ConstantInfo(ConstantType type) {
         this.type = type;
     }
 
@@ -23,59 +23,99 @@ public class ConstantInfo {
         int getNameAndTypeIndex();
     }
 
-    public static class Class extends ConstantInfo implements NamedInfo {
+    public static class Class extends ConstantInfo {
         private final int descriptorIndex;
+        private java.lang.String name;
 
-        public Class(int descriptorIndex) {
+        Class(int descriptorIndex) {
             super(ConstantType.Class);
             this.descriptorIndex = descriptorIndex;
         }
 
-        @Override
-        public int getNameIndex() {
+        public java.lang.String getName() {
+            return name;
+        }
+
+        void setName(java.lang.String name) {
+            this.name = name;
+        }
+
+        int getNameIndex() {
             return descriptorIndex;
         }
     }
 
-    public static class Fieldref extends ConstantInfo implements ClassRefInfo {
+    public static class Fieldref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
+        private ConstantInfo.Class classInfo;
+        private ConstantInfo.NameAndType nameAndType;
 
-        public Fieldref(int classIndex, int nameAndTypeIndex) {
+        Fieldref(int classIndex, int nameAndTypeIndex) {
             super(ConstantType.Fieldref);
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
         }
 
-        @Override
-        public int getClassIndex() {
+        public ConstantInfo.Class getClassInfo() {
+            return classInfo;
+        }
+
+        public ConstantInfo.NameAndType getNameAndType() {
+            return nameAndType;
+        }
+
+        int getClassIndex() {
             return classIndex;
         }
 
-        @Override
-        public int getNameAndTypeIndex() {
+        void setClassInfo(ConstantInfo.Class classInfo) {
+            this.classInfo = classInfo;
+        }
+
+        int getNameAndTypeIndex() {
             return nameAndTypeIndex;
+        }
+
+        void setNameAndType(ConstantInfo.NameAndType nameAndType) {
+            this.nameAndType = nameAndType;
         }
     }
 
-    public static class Methodref extends ConstantInfo implements ClassRefInfo {
+    public static class Methodref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
+        private ConstantInfo.Class classInfo;
+        private ConstantInfo.NameAndType nameAndType;
 
-        public Methodref(int classIndex, int nameAndTypeIndex) {
+        Methodref(int classIndex, int nameAndTypeIndex) {
             super(ConstantType.Methodref);
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
         }
 
-        @Override
-        public int getClassIndex() {
+        public ConstantInfo.Class getClassInfo() {
+            return classInfo;
+        }
+
+        public ConstantInfo.NameAndType getNameAndType() {
+            return nameAndType;
+        }
+
+        int getClassIndex() {
             return classIndex;
         }
 
-        @Override
-        public int getNameAndTypeIndex() {
+        void setClassInfo(ConstantInfo.Class classInfo) {
+            this.classInfo = classInfo;
+        }
+
+        int getNameAndTypeIndex() {
             return nameAndTypeIndex;
+        }
+
+        void setNameAndType(ConstantInfo.NameAndType nameAndType) {
+            this.nameAndType = nameAndType;
         }
     }
 
@@ -83,31 +123,39 @@ public class ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
 
-        public InterfaceMethodref(int classIndex, int nameAndTypeIndex) {
+        InterfaceMethodref(int classIndex, int nameAndTypeIndex) {
             super(ConstantType.Methodref);
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
         }
     }
 
-    public static class String extends ConstantInfo implements NamedInfo {
+    public static class String extends ConstantInfo {
         private final int stringIndex;
+        private java.lang.String string;
 
-        public String(int stringIndex) {
+        String(int stringIndex) {
             super(ConstantType.String);
             this.stringIndex = stringIndex;
         }
 
-        @Override
-        public int getNameIndex() {
+        public java.lang.String getString() {
+            return string;
+        }
+
+        int getStringIndex() {
             return stringIndex;
+        }
+
+        void setString(java.lang.String string) {
+            this.string = string;
         }
     }
 
     public static class Integer extends ConstantInfo {
         private final int bytes;
 
-        public Integer(int bytes) {
+        Integer(int bytes) {
             super(ConstantType.Integer);
             this.bytes = bytes;
         }
@@ -116,7 +164,7 @@ public class ConstantInfo {
     public static class Float extends ConstantInfo {
         private final float value;
 
-        public Float(byte[] bytes) {
+        Float(byte[] bytes) {
             super(ConstantType.Float);
             this.value = ByteBuffer.wrap(bytes).getFloat();
         }
@@ -129,7 +177,7 @@ public class ConstantInfo {
     public static class Long extends ConstantInfo {
         private final long value;
 
-        public Long(long value) {
+        Long(long value) {
             super(ConstantType.Long);
             this.value = value;
         }
@@ -142,7 +190,7 @@ public class ConstantInfo {
     public static class Double extends ConstantInfo {
         private final double value;
 
-        public Double(byte[] bytes) {
+        Double(byte[] bytes) {
             super(ConstantType.Double);
             this.value = ByteBuffer.wrap(bytes).getDouble();
         }
@@ -152,30 +200,47 @@ public class ConstantInfo {
         }
     }
 
-    public static class NameAndType extends ConstantInfo implements NamedInfo {
+    public static class NameAndType extends ConstantInfo {
         private final int nameIndex;
         private final int descriptorIndex;
+        private java.lang.String name;
+        private java.lang.String descriptor;
 
-        public NameAndType(int nameIndex, int descriptorIndex) {
+        NameAndType(int nameIndex, int descriptorIndex) {
             super(ConstantType.NameAndType);
             this.nameIndex = nameIndex;
             this.descriptorIndex = descriptorIndex;
         }
 
-        @Override
-        public int getNameIndex() {
+        public java.lang.String getName() {
+            return name;
+        }
+
+        public MethodInfo.Descriptor getMethodDescriptor() {
+            return ClassFileParser.DescriptorParser.parseMethod(descriptor);
+        }
+
+        int getNameIndex() {
             return nameIndex;
         }
 
-        public int getDescriptorIndex() {
+        void setName(java.lang.String name) {
+            this.name = name;
+        }
+
+        int getDescriptorIndex() {
             return descriptorIndex;
+        }
+
+        void setDescriptor(java.lang.String descriptor) {
+            this.descriptor = descriptor;
         }
     }
 
     public static class Utf8 extends ConstantInfo {
         private final byte[] bytes;
 
-        public Utf8(byte[] bytes) {
+        Utf8(byte[] bytes) {
             super(ConstantType.Utf8);
             this.bytes = bytes;
         }
@@ -189,7 +254,7 @@ public class ConstantInfo {
         private final int referenceKind;
         private final int referenceIndex;
 
-        public MethodHandle(int referenceKind, int referenceIndex) {
+        MethodHandle(int referenceKind, int referenceIndex) {
             super(ConstantType.MethodHandle);
             this.referenceKind = referenceKind;
             this.referenceIndex = referenceIndex;
@@ -199,7 +264,7 @@ public class ConstantInfo {
     public static class MethodType extends ConstantInfo {
         private final int descriptorIndex;
 
-        public MethodType(int descriptorIndex) {
+        MethodType(int descriptorIndex) {
             super(ConstantType.MethodType);
             this.descriptorIndex = descriptorIndex;
         }
@@ -209,7 +274,7 @@ public class ConstantInfo {
         private final int bootstrapMethodAttrIndex;
         private final int nameAndTypeIndex;
 
-        public InvokeDynamic(int bootstrapMethodAttrIndex, int nameAndTypeIndex) {
+        InvokeDynamic(int bootstrapMethodAttrIndex, int nameAndTypeIndex) {
             super(ConstantType.InvokeDynamic);
             this.bootstrapMethodAttrIndex = bootstrapMethodAttrIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
