@@ -769,19 +769,11 @@ public class BytecodeInterpreter {
         }
 
         for (FieldInfo fieldInfo : classFile.getFields()) {
-            FieldType fieldType = fieldInfo.getDescriptor();
-            String fieldName = fieldInfo.getName();
+            if (fieldInfo.getAccessFlags().contains(FieldInfo.AccessFlag.ACC_STATIC))
+                continue;
 
-            // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
-            if (fieldType instanceof FieldType.Int) {
-                object.setField(fieldName, new Value(new FieldType.Int(), 0));
-            } else if (fieldType instanceof FieldType.Long) {
-                object.setField(fieldName, new Value(new FieldType.Long(), 0));
-            } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
-                object.setField(fieldName, Value.Null());
-            } else {
-                throw new RuntimeException("unexpected field type in new: " + fieldType);
-            }
+            FieldType fieldType = fieldInfo.getDescriptor();
+            object.setField(fieldInfo.getName(), vm.defaultValueOfType(fieldType));
         }
     }
 

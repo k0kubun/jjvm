@@ -1,12 +1,13 @@
 package com.github.k0kubun.jjvm.classfile;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MethodInfo {
-    private final List<AccessFlag> accessFlags;
+    private final Set<AccessFlag> accessFlags;
     private final String name;
     private final Descriptor descriptor;
     private final Map<String, AttributeInfo> attributes;
@@ -21,7 +22,7 @@ public class MethodInfo {
         }
     }
 
-    public List<AccessFlag> getAccessFlags() {
+    public Set<AccessFlag> getAccessFlags() {
         return accessFlags;
     }
 
@@ -57,23 +58,23 @@ public class MethodInfo {
             this.value = value;
         }
 
-        public int getValue() {
-            return value;
-        }
-
         public String getName() {
             String suffix = toString().substring(4); // trim ACC_
             return suffix.toLowerCase();
         }
 
-        public static List<AccessFlag> fromInt(int accessFlags) {
-            List<AccessFlag> list = new ArrayList<>();
+        int getValue() {
+            return value;
+        }
+
+        public static Set<AccessFlag> fromInt(int accessFlags) {
+            Set<AccessFlag> flags = new HashSet<>();
             for (AccessFlag flag : AccessFlag.values()) {
                 if ((flag.getValue() & accessFlags) != 0) {
-                    list.add(flag);
+                    flags.add(flag);
                 }
             }
-            return list;
+            return flags;
         }
     }
 

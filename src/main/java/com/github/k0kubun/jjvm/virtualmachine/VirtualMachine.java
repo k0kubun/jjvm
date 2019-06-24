@@ -3,6 +3,7 @@ package com.github.k0kubun.jjvm.virtualmachine;
 import com.github.k0kubun.jjvm.classfile.AttributeInfo;
 import com.github.k0kubun.jjvm.classfile.ClassFile;
 import com.github.k0kubun.jjvm.classfile.ClassFileParser;
+import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
@@ -20,8 +21,7 @@ public class VirtualMachine {
         classLoader = new ClassLoader(classPath);
 
         // initializeClass("java/lang/String");
-        Value.Class system = initializeClass("java/lang/System");
-        system.setField("security", Value.Null()); // TODO: implement field initializer
+        initializeClass("java/lang/System");
 
         callInitializeSystemClass();
 
@@ -29,11 +29,9 @@ public class VirtualMachine {
         Value.Class runtime = initializeClass("java/lang/Runtime");
         runtime.setField("currentRuntime", new Value(fieldType("Ljava/lang/Runtime;"), new Value.Object()));
         Value.Class shutdown = initializeClass("java/lang/Shutdown");
-        shutdown.setField("state", new Value(new FieldType.Int(), 0));
         shutdown.setField("lock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
         shutdown.setField("haltLock", new Value(fieldType("Ljava/lang/Shutdown$Lock;"), new Value.Object()));
         shutdown.setField("hooks", new Value(new FieldType.ArrayType(fieldType("Ljava/lang/Runnable;")), new Value.Object[10]));
-        shutdown.setField("runFinalizersOnExit", new Value(new FieldType.Boolean(), false));
     }
 
     // Call an instance method
@@ -72,6 +70,38 @@ public class VirtualMachine {
         return getClass(fieldType(String.format("L%s;", name)));
     }
 
+    Value defaultValueOfType(FieldType fieldType) {
+        // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
+        if (fieldType instanceof FieldType.Int) {
+            return new Value(new FieldType.Int(), 0);
+        } else if (fieldType instanceof FieldType.Long) {
+            return new Value(new FieldType.Long(), 0);
+        } else if (fieldType instanceof FieldType.Double) {
+            return new Value(new FieldType.Double(), +0.0);
+        } else if (fieldType instanceof FieldType.Boolean) {
+            return new Value(new FieldType.Boolean(), false);
+        } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
+            return Value.Null();
+        } else {
+            throw new RuntimeException("unexpected field type in new: " + fieldType);
+        }
+    }
+
+    private Value.Class initializeClass(String klass) {
+        ClassFile classFile = classLoader.loadClass(klass);
+        Value.Class value = new Value.Class(classFile);
+
+        for (FieldInfo field : classFile.getFields()) {
+            if (!field.getAccessFlags().contains(FieldInfo.AccessFlag.ACC_STATIC))
+                continue;
+            FieldType fieldType = field.getDescriptor();
+            value.setField(field.getName(), defaultValueOfType(fieldType));
+        }
+
+        classMap.put(classFile.getThisClassName(), value);
+        return value;
+    }
+
     // Get or load a class from FieldType
     private Value.Class getClass(FieldType type) {
         if (type instanceof FieldType.ObjectType) {
@@ -86,14 +116,6 @@ public class VirtualMachine {
         } else {
             throw new RuntimeException("unexpected FieldType is given to getClass: " + type.getType());
         }
-    }
-
-    private Value.Class initializeClass(String klass) {
-        ClassFile classFile = classLoader.loadClass(klass);
-        Value.Class value = new Value.Class(classFile);
-        // TODO: initialize fields here!
-        classMap.put(classFile.getThisClassName(), value);
-        return value;
     }
 
     // `call_initializeSystemClass` equivalent
