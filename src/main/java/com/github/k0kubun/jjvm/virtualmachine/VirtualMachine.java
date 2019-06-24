@@ -84,9 +84,11 @@ public class VirtualMachine {
         if (fieldType instanceof FieldType.Int) {
             return new Value(new FieldType.Int(), 0);
         } else if (fieldType instanceof FieldType.Long) {
-            return new Value(new FieldType.Long(), 0);
+            return new Value(new FieldType.Long(), 0L);
+        } else if (fieldType instanceof FieldType.Float) {
+            return new Value(new FieldType.Double(), +0.0F);
         } else if (fieldType instanceof FieldType.Double) {
-            return new Value(new FieldType.Double(), +0.0);
+            return new Value(new FieldType.Double(), +0.0D);
         } else if (fieldType instanceof FieldType.Boolean) {
             return new Value(new FieldType.Boolean(), false);
         } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
@@ -171,6 +173,9 @@ public class VirtualMachine {
     // `call_initializeSystemClass` equivalent
     private void callInitializeSystemClass() {
         Value.Class system = classMap.get("java/lang/System");
+        //MethodInfo method = searchMethod(system, "initializeSystemClass",
+        //        ClassFileParser.DescriptorParser.parseMethod("()V"));
+        //executeMethod(system, method, new Value[0]);
         system.setField("out", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
         system.setField("err", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
     }
@@ -190,7 +195,7 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
-        // System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
+        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             // TODO: Carve out this logic
             String className = klass.getClassFile().getThisClassName();
@@ -208,11 +213,17 @@ public class VirtualMachine {
                     throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
                 }
                 return null;
+            } else if (className.equals("java/lang/System") && method.getName().equals("initProperties")) {
+                // not implemented properly yet. FIXME: implement something
+                return Value.Null();
+            } else if (className.equals("sun/misc/VM") && method.getName().equals("initialize")) {
+                // not implemented properly yet. FIXME: implement something
+                return null;
             } else if (className.equals("java/lang/Class") && method.getName().equals("desiredAssertionStatus0")) {
                 // not implemented properly yet. FIXME: Is it okay?
                 return new Value(new FieldType.Boolean(), true);
             } else if (className.equals("java/lang/Class") && method.getName().equals("getPrimitiveClass")) {
-                // not implemented properly yet. FIXME: Is it okay?
+                // not implemented properly yet. FIXME: implement something
                 return Value.Null();
             } else if (className.equals("java/lang/Shutdown") && method.getName().equals("halt0")) {
                 System.exit((int)args[0].getValue());

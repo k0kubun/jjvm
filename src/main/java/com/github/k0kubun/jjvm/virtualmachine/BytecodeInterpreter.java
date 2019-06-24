@@ -232,7 +232,12 @@ public class BytecodeInterpreter {
                     ((Object[])receiver.getValue())[(Integer)index.getValue()] = arg.getValue();
                     break;
                 // case Bastore:
-                // case Castore:
+                case Castore:
+                    arg = stack.pop();
+                    index = stack.pop();
+                    receiver = stack.pop();
+                    ((char[])receiver.getValue())[(Integer)index.getValue()] = (char)arg.getIntValue();
+                    break;
                 // case Sastore:
                 case Pop:
                     stack.pop();
@@ -399,7 +404,10 @@ public class BytecodeInterpreter {
                     intv = (Integer)stack.pop().getValue();
                     stack.push(new Value(new FieldType.Long(), (long)intv));
                     break;
-                // case I2f:
+                case I2f:
+                    intv = (Integer)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Float(), (float)intv));
+                    break;
                 // case I2d:
                 case L2i:
                     longv = (Long)stack.pop().getValue();
@@ -407,7 +415,10 @@ public class BytecodeInterpreter {
                     break;
                 // case L2f:
                 // case L2d:
-                // case F2i:
+                case F2i:
+                    float floatv = (Float)stack.pop().getValue();
+                    stack.push(new Value(new FieldType.Int(), (int)floatv));
+                    break;
                 // case F2l:
                 // case F2d:
                 // case D2i:
@@ -417,8 +428,28 @@ public class BytecodeInterpreter {
                 // case I2c:
                 // case I2s:
                 // case Lcmp:
-                // case Fcmpl:
-                // case Fcmpg:
+                case Fcmpl:
+                    // TODO: test this instruction
+                    floats = popFloats(2);
+                    if (floats[0] < floats[1]) {
+                        stack.push(new Value(new FieldType.Int(), 1));
+                    } else if (floats[0] == floats[1]) {
+                        stack.push(new Value(new FieldType.Int(), 0));
+                    } else {
+                        stack.push(new Value(new FieldType.Int(), -1));
+                    }
+                    break;
+                case Fcmpg:
+                    // TODO: test this instruction
+                    floats = popFloats(2);
+                    if (floats[0] == floats[1]) {
+                        stack.push(new Value(new FieldType.Int(), 0));
+                    } else if (floats[0] < floats[1]) {
+                        stack.push(new Value(new FieldType.Int(), -1));
+                    } else {
+                        stack.push(new Value(new FieldType.Int(), 1));
+                    }
+                    break;
                 // case Dcmpl:
                 // case Dcmpg:
                 case Ifeq:
