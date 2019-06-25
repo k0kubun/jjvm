@@ -438,7 +438,17 @@ public class BytecodeInterpreter {
                 // case I2b:
                 // case I2c:
                 // case I2s:
-                // case Lcmp:
+                case Lcmp:
+                    // TODO: test this instruction
+                    longs = popLongs(2);
+                    if (longs[0] < longs[1]) {
+                        stack.push(new Value(new FieldType.Int(), 1));
+                    } else if (longs[0] == longs[1]) {
+                        stack.push(new Value(new FieldType.Int(), 0));
+                    } else {
+                        stack.push(new Value(new FieldType.Int(), -1));
+                    }
+                    break;
                 case Fcmpl:
                     // TODO: test this instruction
                     floats = popFloats(2);

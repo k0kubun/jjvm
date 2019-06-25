@@ -190,8 +190,8 @@ public class Instruction {
         I2f(0x86, 0),
         I2d(0x87, 0),
         L2i(0x88, 0),
-        //L2f(0x89, 0),
-        //L2d(0x8a, 0),
+        L2f(0x89, 0),
+        L2d(0x8a, 0),
         F2i(0x8b, 0),
         F2l(0x8c, 0),
         F2d(0x8d, 0),
@@ -257,7 +257,7 @@ public class Instruction {
         Monitorexit(0xc3, 0),
 
         // === Extended ===
-        //Wide(0xc4, ),
+        Wide(0xc4, 3), // <opcode>, indexbyte1, indexbyte2
         //Multianewarray(0xc5, ),
         Ifnull(0xc6, 2), // branchbyte1, branchbyte2
         Ifnonnull(0xc7, 2); // branchbyte1, branchbyte2

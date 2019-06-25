@@ -8,6 +8,7 @@ import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -293,22 +294,27 @@ public class VirtualMachine {
         else if (className.equals("sun/misc/VM") && method.getName().equals("booted")) {
             ret = null;
         }
-        // Stub println / println... It's not ready yet.
-        else if (className.equals("java/io/PrintStream") && method.getName().equals("println")) {
-            if (args[1].getType().getType().equals("java.lang.String")) {
-                System.out.println((char[]) ((Value.Object) args[1].getValue()).getField("value").getValue());
-            } else {
-                System.out.println(args[1].getValue());
+        // Current stub end of println:
+        else if (className.equals("sun/nio/cs/StreamEncoder") && method.getName().equals("implWrite")) { // charset handling is broken
+            Value.Object streamEncoder = (Value.Object)args[0].getValue();
+            Value.Object printStream = (Value.Object)streamEncoder.getField("out").getValue();
+            Value.Object bufferedOutputStream = (Value.Object)printStream.getField("out").getValue();
+            Value.Object fileOutputStream = (Value.Object)bufferedOutputStream.getField("out").getValue();
+            Value.Object fileDescriptor = (Value.Object)fileOutputStream.getField("fd").getValue();
+            PrintStream stream = ((int)fileDescriptor.getField("fd").getValue() == 1) ? System.out : System.err;
+
+            int off = (int)args[2].getValue();
+            int len = (int)args[3].getValue();
+            for (int i = off; i < off + len; i++) {
+                stream.print(((char[])args[1].getValue())[i]);
             }
             ret = null;
         }
-        else if (className.equals("java/io/PrintStream") && method.getName().equals("print")) {
-            if (args[1].getType().getType().equals("java.lang.String")) {
-                System.err.print((char[]) ((Value.Object) args[1].getValue()).getField("value").getValue());
-            } else {
-                System.err.print(args[1].getValue());
-            }
-            ret = null;
+        else if ((className.equals("java/lang/Long") // getChars is broken
+                || className.equals("java/lang/Float") // FloatingDecimal classfile parse may be failing
+                || className.equals("java/lang/Double")) && method.getName().equals("toString")) {
+            String str = args[0].getValue().toString();
+            ret = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(str));
         }
         else {
             isStub = false;
