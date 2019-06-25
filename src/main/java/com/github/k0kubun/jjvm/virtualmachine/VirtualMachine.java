@@ -8,6 +8,7 @@ import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -231,34 +232,49 @@ public class VirtualMachine {
     // Temporary measures... FIXME: This method should go away
     private MethodStubResult dispatchStubMethod(Value.Class klass, MethodInfo method, Value[] args) {
         String className = klass.getClassFile().getThisClassName();
-        Value value = Value.Null();
+        Value ret = Value.Null();
         boolean isStub = true;
 
         // Stub properties until initProperties is implemented properly.
         if (className.equals("sun/misc/VM") && method.getName().equals("saveAndRemoveProperties")) {
-            value = null;
+            ret = null;
         }
         else if (className.equals("java/util/Properties") && method.getName().equals("getProperty")) {
             String property = String.valueOf((char[])((Value.Object)args[1].getValue()).getField("value").getValue());
             if (property.equals("sun.stdout.encoding") || property.equals("sun.stderr.encoding")) { // how can we get it properly?
-                value = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object("UTF-8"));
+                ret = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object("UTF-8"));
             } else {
-                value = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(System.getProperty(property)));
+                ret = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(System.getProperty(property)));
             }
         }
         else if (className.equals("java/util/Properties") && method.getName().equals("setProperty")) {
-            value = args[1];
+            ret = args[1];
         }
-
         // Stub AtomicReferenceFieldUpdater. It's not working now.
         else if (className.equals("java/util/concurrent/atomic/AtomicReferenceFieldUpdater") && method.getName().equals("newUpdater")) {
-            value = new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
+            ret = new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
         }
-
+        // Stub println / println... It's not ready yet.
+        else if (className.equals("java/io/PrintStream") && method.getName().equals("println")) {
+            if (args[1].getType().getType().equals("java.lang.String")) {
+                System.out.println((char[]) ((Value.Object) args[1].getValue()).getField("value").getValue());
+            } else {
+                System.out.println(args[1].getValue());
+            }
+            ret = null;
+        }
+        else if (className.equals("java/io/PrintStream") && method.getName().equals("print")) {
+            if (args[1].getType().getType().equals("java.lang.String")) {
+                System.err.print((char[]) ((Value.Object) args[1].getValue()).getField("value").getValue());
+            } else {
+                System.err.print(args[1].getValue());
+            }
+            ret = null;
+        }
         else {
             isStub = false;
         }
-        return new MethodStubResult(isStub, value);
+        return new MethodStubResult(isStub, ret);
     }
 
     private static class NoMethodException extends RuntimeException {

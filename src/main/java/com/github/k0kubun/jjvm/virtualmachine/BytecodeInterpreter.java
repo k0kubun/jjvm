@@ -621,20 +621,7 @@ public class BytecodeInterpreter {
                     String methodName = getMethodConstant(instruction.getIndex()).getNameAndType().getName();
                     Descriptor methodType = getMethodConstant(instruction.getIndex()).getNameAndType().getMethodDescriptor();
                     Value[] args = popStack(methodType.getParameters().size() + 1); // including receiver
-
-                    if (args[0].getType().getType().equals("java.io.PrintStream") && args.length == 2
-                            && (methodName.equals("println") || methodName.equals("print"))) {
-                        // Stub PrintStream#println, #print implementation for now
-                        Object val = args[1].getValue();
-                        PrintStream stream = (methodName.equals("println") ? System.out : System.err); // obviously... this is a workaround :)
-                        if (args[1].getType().getType().equals("java.lang.String")) {
-                            stream.println((char[])((Value.Object)val).getField("value").getValue());
-                        } else {
-                            stream.println(val);
-                        }
-                    } else {
-                        pushIfNotNull(vm.callMethod(methodName, methodType, args));
-                    }
+                    pushIfNotNull(vm.callMethod(methodName, methodType, args));
                     break;
                 case Invokespecial:
                     String methodClassName = getMethodConstant(instruction.getIndex()).getClassInfo().getName();
