@@ -22,41 +22,6 @@ public class JJVMTest {
     }
 
     @Test
-    public void testHello() {
-        compileAndTest("Hello");
-    }
-
-    @Test
-    public void testInt() {
-        compileAndTest("Int");
-    }
-
-    @Test
-    public void testLong() {
-        compileAndTest("Long");
-    }
-
-    @Test
-    public void testFloat() {
-        compileAndTest("Float");
-    }
-
-    @Test
-    public void testDouble() {
-        compileAndTest("Double");
-    }
-
-    @Test
-    public void testString() {
-        compileAndTest("Str");
-    }
-
-    @Test
-    public void testObject() {
-        compileAndTest("Obj");
-    }
-
-    @Test
     public void testArg() {
         compileAndTest("Arg", "hello");
     }
@@ -67,13 +32,54 @@ public class JJVMTest {
     }
 
     @Test
-    public void testBootstrapHelp() {
-        testJJVMCommand("-cp", "build/classes/java/main", "com.github.k0kubun.jjvm.JJVM", "-help");
+    public void testConditional() {
+        compileAndTest("Conditional");
     }
 
     @Test
-    public void testConditional() {
-        compileAndTest("Conditional");
+    public void testDouble() {
+        compileAndTest("Double");
+    }
+
+    @Test
+    public void testFloat() {
+        compileAndTest("Float");
+    }
+
+
+    @Test
+    public void testHello() {
+        compileAndTest("Hello");
+    }
+
+    @Test
+    public void testInt() {
+        compileAndTest("Int");
+    }
+
+    @Test
+    public void testInterface() {
+        compileAndTest("Interface");
+    }
+
+    @Test
+    public void testLong() {
+        compileAndTest("Long");
+    }
+
+    @Test
+    public void testObject() {
+        compileAndTest("Obj");
+    }
+
+    @Test
+    public void testString() {
+        compileAndTest("Str");
+    }
+
+    @Test
+    public void testBootstrapHelp() {
+        testJJVMCommand("-cp", "build/classes/java/main", "com.github.k0kubun.jjvm.JJVM", "-help");
     }
 
     private void compileAndTest(String klass, String... args) {

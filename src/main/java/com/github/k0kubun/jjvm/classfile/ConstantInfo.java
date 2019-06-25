@@ -122,11 +122,37 @@ public class ConstantInfo {
     public static class InterfaceMethodref extends ConstantInfo {
         private final int classIndex;
         private final int nameAndTypeIndex;
+        private ConstantInfo.Class classInfo;
+        private ConstantInfo.NameAndType nameAndType;
 
         InterfaceMethodref(int classIndex, int nameAndTypeIndex) {
             super(ConstantType.Methodref);
             this.classIndex = classIndex;
             this.nameAndTypeIndex = nameAndTypeIndex;
+        }
+
+        public ConstantInfo.Class getClassInfo() {
+            return classInfo;
+        }
+
+        public ConstantInfo.NameAndType getNameAndType() {
+            return nameAndType;
+        }
+
+        int getClassIndex() {
+            return classIndex;
+        }
+
+        void setClassInfo(ConstantInfo.Class classInfo) {
+            this.classInfo = classInfo;
+        }
+
+        int getNameAndTypeIndex() {
+            return nameAndTypeIndex;
+        }
+
+        void setNameAndType(ConstantInfo.NameAndType nameAndType) {
+            this.nameAndType = nameAndType;
         }
     }
 

@@ -638,7 +638,12 @@ public class BytecodeInterpreter {
                     args = popStack(methodType.getParameters().size());
                     pushIfNotNull(vm.callStaticMethod(methodClassName, methodName, methodType, args));
                     break;
-                // case Invokeinterface:
+                case Invokeinterface:
+                    methodName = getInterfaceMethodConstant(instruction.getIndex()).getNameAndType().getName();
+                    methodType = getInterfaceMethodConstant(instruction.getIndex()).getNameAndType().getMethodDescriptor();
+                    args = popStack(methodType.getParameters().size() + 1); // including receiver
+                    pushIfNotNull(vm.callMethod(methodName, methodType, args));
+                    break;
                 // case Invokedynamic:
                 case New:
                     String className = getClassConstant(instruction.getIndex()).getName();
@@ -805,6 +810,10 @@ public class BytecodeInterpreter {
 
     private ConstantInfo.Methodref getMethodConstant(int index) {
         return (ConstantInfo.Methodref)getConstant(index);
+    }
+
+    private ConstantInfo.InterfaceMethodref getInterfaceMethodConstant(int index) {
+        return (ConstantInfo.InterfaceMethodref)getConstant(index);
     }
 
     private ConstantInfo getConstant(int index) {

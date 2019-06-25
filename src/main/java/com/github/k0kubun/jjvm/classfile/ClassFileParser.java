@@ -214,7 +214,9 @@ public class ClassFileParser {
                 info.setClassInfo((ConstantInfo.Class)constantPool[info.getClassIndex() - 1]);
                 info.setNameAndType((ConstantInfo.NameAndType)constantPool[info.getNameAndTypeIndex() - 1]);
             } else if (constant instanceof ConstantInfo.InterfaceMethodref) {
-                // not used yet
+                ConstantInfo.InterfaceMethodref info = (ConstantInfo.InterfaceMethodref)constant;
+                info.setClassInfo((ConstantInfo.Class)constantPool[info.getClassIndex() - 1]);
+                info.setNameAndType((ConstantInfo.NameAndType)constantPool[info.getNameAndTypeIndex() - 1]);
             } else if (constant instanceof ConstantInfo.String) {
                 ConstantInfo.String info = (ConstantInfo.String)constant;
                 info.setString(((ConstantInfo.Utf8)constantPool[info.getStringIndex() - 1]).getString());
