@@ -1,6 +1,5 @@
 package com.github.k0kubun.jjvm.classfile;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;

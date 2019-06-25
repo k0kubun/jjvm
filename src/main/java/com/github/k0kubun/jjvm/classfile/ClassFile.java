@@ -8,8 +8,8 @@ public class ClassFile {
     private final int majorVersion;
     private final ConstantInfo[] constantPool;
     private final List<AccessFlag> accessFlags;
-    private final int thisClass;
-    private final int superClass;
+    private final ConstantInfo.Class thisClass;
+    private final ConstantInfo.Class superClass;
     private final int[] interfaces;
     private final FieldInfo[] fields;
     private final MethodInfo[] methods;
@@ -26,8 +26,8 @@ public class ClassFile {
         this.majorVersion = majorVersion;
         this.constantPool = constantPool;
         this.accessFlags = AccessFlag.fromInt(accessFlags);
-        this.thisClass = thisClass;
-        this.superClass = superClass;
+        this.thisClass = (ConstantInfo.Class)constantPool[thisClass - 1];
+        this.superClass = (superClass == 0 ? null : (ConstantInfo.Class)constantPool[superClass - 1]);
         this.interfaces = interfaces;
         this.fields = fields;
         this.methods = methods;
@@ -43,17 +43,17 @@ public class ClassFile {
     }
 
     public String getThisClassName() {
-        ConstantInfo.Class klass = (ConstantInfo.Class)constantPool[thisClass - 1];
-        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex() - 1];
-        return name.getString();
+        return thisClass.getName();
+    }
+
+    public ConstantInfo.Class getSuperClass() {
+        return superClass;
     }
 
     public String getSuperClassName() {
-        if (superClass == 0)
+        if (superClass == null)
             return null;
-        ConstantInfo.Class klass = (ConstantInfo.Class)constantPool[superClass - 1];
-        ConstantInfo.Utf8 name = (ConstantInfo.Utf8)constantPool[klass.getNameIndex() - 1];
-        return name.getString();
+        return superClass.getName();
     }
 
     public List<AccessFlag> getAccessFlags() {

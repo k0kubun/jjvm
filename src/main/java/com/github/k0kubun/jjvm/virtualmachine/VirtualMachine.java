@@ -31,16 +31,16 @@ public class VirtualMachine {
     // Call an instance method
     public Value callMethod(String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         Value.Class klass = getClass(args[0].getType());
-        MethodInfo method = searchMethod(klass, methodName, methodType);
-        return executeMethod(klass, method, args);
+        MethodSearchResult result = searchMethod(klass, methodName, methodType);
+        return executeMethod(result.klass, result.method, args);
     }
 
     // Call an instance method, but specialized for invokespecial
     public Value callMethodSpecial(String methodClassName, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         Value.Class klass = getClass(methodClassName);
-        MethodInfo method;
+        MethodSearchResult result;
         try {
-            method = searchMethod(klass, methodName, methodType);
+            result = searchMethod(klass, methodName, methodType);
         } catch (NoMethodException e) {
             if (methodType.getReturn() instanceof MethodInfo.VoidDescriptor
                     && methodType.getParameters().size() == 0 && methodName.equals("<init>")) {
@@ -51,13 +51,13 @@ public class VirtualMachine {
             }
         }
         // TODO: handle `protected` specially
-        return executeMethod(klass, method, args);
+        return executeMethod(result.klass, result.method, args);
     }
 
     public Value callStaticMethod(String methodClassName, String methodName, MethodInfo.Descriptor methodType, Value[] args) {
         Value.Class klass = getClass(methodClassName);
-        MethodInfo method = searchMethod(klass, methodName, methodType);
-        return executeMethod(klass, method, args);
+        MethodSearchResult result = searchMethod(klass, methodName, methodType);
+        return executeMethod(result.klass, result.method, args);
     }
 
     public Value.Class getClass(String name) {
@@ -146,8 +146,8 @@ public class VirtualMachine {
 
         MethodInfo.Descriptor clinitType = ClassFileParser.DescriptorParser.parseMethod("()V");
         try {
-            MethodInfo method = searchMethod(value, "<clinit>", clinitType);
-            executeMethod(value, method, new Value[0]);
+            MethodSearchResult result = searchMethod(value, "<clinit>", clinitType);
+            executeMethod(result.klass, result.method, new Value[0]);
         } catch (NoMethodException e) {
             // ignore undefined <clinit>:()V call
         }
@@ -173,9 +173,9 @@ public class VirtualMachine {
     // `call_initializeSystemClass` equivalent
     private void callInitializeSystemClass() {
         Value.Class system = classMap.get("java/lang/System");
-        //MethodInfo method = searchMethod(system, "initializeSystemClass",
+        //MethodSearchResult result = searchMethod(system, "initializeSystemClass",
         //        ClassFileParser.DescriptorParser.parseMethod("()V"));
-        //executeMethod(system, method, new Value[0]);
+        //executeMethod(result.klass, result.method, new Value[0]);
         system.setField("out", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
         system.setField("err", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
     }
@@ -184,11 +184,15 @@ public class VirtualMachine {
         return ClassFileParser.DescriptorParser.parseField(type);
     }
 
-    private MethodInfo searchMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType) {
+    private MethodSearchResult searchMethod(Value.Class klass, String methodName, MethodInfo.Descriptor methodType) {
         for (MethodInfo method : klass.getClassFile().getMethods()) {
             if (method.getName().equals(methodName) && method.getDescriptor().equals(methodType)) {
-                return method;
+                return new MethodSearchResult(klass, method);
             }
+        }
+        if (klass.getClassFile().getSuperClass() != null) {
+            Value.Class superClass = getClass(klass.getClassFile().getSuperClass().getName());
+            return searchMethod(superClass, methodName, methodType);
         }
         throw new NoMethodException(String.format("%s.%s (%s)",
                 klass.getClassFile().getThisClassName(), methodName, methodType.toString()));
@@ -248,6 +252,16 @@ public class VirtualMachine {
     private static class NoMethodException extends RuntimeException {
         public NoMethodException(String message) {
             super(message);
+        }
+    }
+
+    private static class MethodSearchResult {
+        final Value.Class klass;
+        final MethodInfo method;
+
+        public MethodSearchResult(Value.Class klass, MethodInfo method) {
+            this.klass = klass;
+            this.method = method;
         }
     }
 }
