@@ -8,7 +8,6 @@ import com.github.k0kubun.jjvm.classfile.FieldInfo;
 import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,13 +26,16 @@ public class VirtualMachine {
 
         // stub: <clinit> of these classes are buggy now
         clinitBlacklist = new HashSet<>();
-        clinitBlacklist.add("sun/misc/Unsafe");
-        clinitBlacklist.add("sun/misc/SharedSecrets");
-        clinitBlacklist.add("java/util/concurrent/atomic/AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
         clinitBlacklist.add("java/lang/Exception");
         clinitBlacklist.add("java/lang/IllegalArgumentException");
         clinitBlacklist.add("java/lang/RuntimeException");
         clinitBlacklist.add("java/lang/Throwable");
+        clinitBlacklist.add("java/nio/Bits");
+        clinitBlacklist.add("java/util/concurrent/atomic/AtomicInteger");
+        clinitBlacklist.add("java/util/concurrent/atomic/AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
+        clinitBlacklist.add("sun/misc/SharedSecrets");
+        clinitBlacklist.add("sun/misc/Unsafe");
+        clinitBlacklist.add("sun/reflect/Reflection");
 
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
@@ -99,6 +101,8 @@ public class VirtualMachine {
             return new Value(new FieldType.Int(), 0);
         } else if (fieldType instanceof FieldType.Long) {
             return new Value(new FieldType.Long(), 0L);
+        } else if (fieldType instanceof FieldType.Char) {
+            return new Value(new FieldType.Char(), '\u0000');
         } else if (fieldType instanceof FieldType.Float) {
             return new Value(new FieldType.Double(), +0.0F);
         } else if (fieldType instanceof FieldType.Double) {
@@ -189,11 +193,9 @@ public class VirtualMachine {
     // `call_initializeSystemClass` equivalent
     private void callInitializeSystemClass() {
         Value.Class system = classMap.get("java/lang/System");
-        //MethodSearchResult result = searchMethod(system, "initializeSystemClass",
-        //        ClassFileParser.DescriptorParser.parseMethod("()V"));
-        //executeMethod(result.klass, result.method, new Value[0]);
-        system.setField("out", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
-        system.setField("err", new Value(fieldType("Ljava/io/PrintStream;"), new Value.Object()));
+        MethodSearchResult result = searchMethod(system, "initializeSystemClass",
+                ClassFileParser.DescriptorParser.parseMethod("()V"));
+        executeMethod(result.klass, result.method, new Value[0]);
     }
 
     private FieldType fieldType(String type) {
@@ -250,9 +252,46 @@ public class VirtualMachine {
         else if (className.equals("java/util/Properties") && method.getName().equals("setProperty")) {
             ret = args[1];
         }
-        // Stub AtomicReferenceFieldUpdater. It's not working now.
+        // Following methods are Not working...
         else if (className.equals("java/util/concurrent/atomic/AtomicReferenceFieldUpdater") && method.getName().equals("newUpdater")) {
             ret = new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
+        }
+        else if (className.startsWith("sun/nio/cs/StandardCharsets$") && method.getName().equals("init")) {
+            ret = null;
+        }
+        else if (className.equals("java/lang/ThreadLocal") && method.getName().equals("<init>")) {
+            ret = null;
+        }
+        else if (className.equals("sun/nio/cs/FastCharsetProvider") && method.getName().equals("charsetForName")) {
+            ret = new Value(new FieldType.ObjectType("java/nio/charset/Charset"), new Value.Object());
+        }
+        else if (className.equals("java/nio/charset/Charset") && method.getName().equals("forName")) {
+            ret = new Value(new FieldType.ObjectType("java/nio/charset/Charset"), new Value.Object());
+        }
+        else if (className.equals("java/nio/charset/Charset") && method.getName().equals("newEncoder")) {
+            ret = new Value(new FieldType.ObjectType("java/nio/charset/CharsetEncoder"), new Value.Object());
+        }
+        else if (className.equals("java/nio/charset/CharsetEncoder") && method.getName().equals("charset")) {
+            ret = new Value(new FieldType.ObjectType("java/nio/charset/Charset"), new Value.Object());
+        }
+        else if (className.equals("java/nio/Bits") && method.getName().equals("byteOrder")) {
+            ret = new Value(new FieldType.ObjectType("java/nio/ByteOrder"), new Value.Object());
+        }
+        // Stub the latter part of initializeSystemClass for now
+        else if (className.equals("java/lang/System") && method.getName().equals("loadLibrary")) {
+            ret = null;
+        }
+        else if (className.equals("java/lang/Terminator") && method.getName().equals("setup")) {
+            ret = null;
+        }
+        else if (className.equals("java/lang/Thread") && method.getName().equals("getThreadGroup")) {
+            ret = new Value(new FieldType.ObjectType("java/lang/ThreadGroup"), new Value.Object());
+        }
+        else if (className.equals("java/lang/ThreadGroup") && method.getName().equals("add")) {
+            ret = null;
+        }
+        else if (className.equals("sun/misc/VM") && method.getName().equals("booted")) {
+            ret = null;
         }
         // Stub println / println... It's not ready yet.
         else if (className.equals("java/io/PrintStream") && method.getName().equals("println")) {

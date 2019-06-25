@@ -137,11 +137,11 @@ public class Instruction {
 
         // === Stack ===
         Pop(0x57, 0),
-        //Pop2(0x58, 0),
+        Pop2(0x58, 0),
         Dup(0x59, 0),
         Dup_X1(0x5a, 0),
         Dup_X2(0x5b, 0),
-        //Dup2(0x5c, ),
+        Dup2(0x5c, 0),
         //Dup2_X1(0x5d, ),
         //Dup2_X2(0x5e, ),
         //Swap(0x5f, ),
@@ -188,7 +188,7 @@ public class Instruction {
         // === Conversions ===
         I2l(0x85, 0),
         I2f(0x86, 0),
-        //I2d(0x87, 0),
+        I2d(0x87, 0),
         L2i(0x88, 0),
         //L2f(0x89, 0),
         //L2d(0x8a, 0),

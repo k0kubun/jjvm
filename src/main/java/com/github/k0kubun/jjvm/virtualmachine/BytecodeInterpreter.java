@@ -10,7 +10,6 @@ import com.github.k0kubun.jjvm.classfile.Instruction;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 import com.github.k0kubun.jjvm.classfile.MethodInfo.Descriptor;
 
-import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -95,7 +94,8 @@ public class BytecodeInterpreter {
                     stack.push(new Value(new FieldType.Short(), (short)instruction.getIndex()));
                     break;
                 case Ldc:
-                    ConstantInfo constValue = getConstant(instruction.getByte());
+                case Ldc_W:
+                    ConstantInfo constValue = getConstant(opcode == Opcode.Ldc ? instruction.getByte() : instruction.getIndex());
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type, new Value.Object(((ConstantInfo.String)constValue).getString())));
@@ -104,9 +104,9 @@ public class BytecodeInterpreter {
                     } else if (constValue instanceof ConstantInfo.Float) {
                         stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Class) {
-                        FieldType type = DescriptorParser.parseField("Ljava/lang/Class;"); // XXX: Is the class an object type...?
+                        FieldType type = DescriptorParser.parseField("Ljava/lang/Class;");
                         String name = ((ConstantInfo.Class)constValue).getName();
-                        if (name.equals("[B")) { // stub for now. FIXME
+                        if (name.equals("[B")) { // broken path. FIXME FIXME FIXME
                             stack.push(Value.Null());
                         } else {
                             stack.push(new Value(type, vm.getClass(name)));
@@ -115,7 +115,6 @@ public class BytecodeInterpreter {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
                     }
                     break;
-                // case Ldc_W:
                 case Ldc2_W:
                     constValue = getConstant(instruction.getIndex());
                     if (constValue instanceof ConstantInfo.Long) {
@@ -235,7 +234,7 @@ public class BytecodeInterpreter {
                     arg = stack.pop();
                     Value index = stack.pop();
                     receiver = stack.pop();
-                    ((Object[])receiver.getValue())[(Integer)index.getValue()] = arg.getValue();
+                    ((Object[]) receiver.getValue())[(Integer) index.getValue()] = arg.getValue();
                     break;
                 // case Bastore:
                 case Castore:
@@ -583,6 +582,8 @@ public class BytecodeInterpreter {
                     intv = value.getIntValue();
                     if (returnType instanceof FieldType.Int) {
                         return value;
+                    } else if (returnType instanceof FieldType.Char) {
+                        return new Value(new FieldType.Char(), (char)intv);
                     } else if (returnType instanceof FieldType.Boolean) {
                         return new Value(new FieldType.Boolean(), intv == 1);
                     } else {
@@ -702,8 +703,9 @@ public class BytecodeInterpreter {
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
                             stack.push(receiver);
                         } else {
-                            //stack.push(receiver);
-                            throw new RuntimeException("This path of checkcast is not implemented yet");
+                            stack.push(receiver);
+                            // stub. FIXME FIXME FIXME
+                            //throw new RuntimeException("This path of checkcast is not implemented yet");
                         }
                     } else {
                         throw new RuntimeException("unexpected type of ConstantInfo in instanceof: " + constValue);
