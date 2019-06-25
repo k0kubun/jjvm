@@ -99,12 +99,18 @@ public class BytecodeInterpreter {
                     if (constValue instanceof ConstantInfo.String) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type, new Value.Object(((ConstantInfo.String)constValue).getString())));
+                    } else if (constValue instanceof ConstantInfo.Integer) {
+                        stack.push(new Value(new FieldType.Int(), ((ConstantInfo.Integer)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Float) {
                         stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Class) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/Class;"); // XXX: Is the class an object type...?
                         String name = ((ConstantInfo.Class)constValue).getName();
-                        stack.push(new Value(type, vm.getClass(name)));
+                        if (name.equals("[B")) { // stub for now. FIXME
+                            stack.push(Value.Null());
+                        } else {
+                            stack.push(new Value(type, vm.getClass(name)));
+                        }
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc: " + constValue.getType());
                     }
@@ -246,7 +252,13 @@ public class BytecodeInterpreter {
                 case Dup:
                     stack.push(stack.getFirst());
                     break;
-                // case Dup_X1:
+                case Dup_X1:
+                    Value value1 = stack.pop();
+                    Value value2 = stack.pop();
+                    stack.push(value1);
+                    stack.push(value2);
+                    stack.push(value1);
+                    break;
                 // case Dup_X2:
                 // case Dup2:
                 // case Dup2_X1:
@@ -703,6 +715,7 @@ public class BytecodeInterpreter {
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
                             stack.push(receiver);
                         } else {
+                            //stack.push(receiver);
                             throw new RuntimeException("This path of checkcast is not implemented yet");
                         }
                     } else {

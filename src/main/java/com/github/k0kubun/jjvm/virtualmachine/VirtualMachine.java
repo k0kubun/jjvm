@@ -9,17 +9,30 @@ import com.github.k0kubun.jjvm.classfile.FieldType;
 import com.github.k0kubun.jjvm.classfile.MethodInfo;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 // A class hodling VM states and providing VM-related interfaces.
 public class VirtualMachine {
     private final Map<String, Value.Class> classMap;
     private final ClassLoader classLoader;
+    private final Set<String> clinitBlacklist;
 
     // Threads::create_vm() equivalent
     public VirtualMachine(String classPath) {
         classMap = new HashMap<>();
         classLoader = new ClassLoader(classPath);
+
+        // stub: <clinit> of these classes are buggy now
+        clinitBlacklist = new HashSet<>();
+        clinitBlacklist.add("sun/misc/Unsafe");
+        clinitBlacklist.add("sun/misc/SharedSecrets");
+        clinitBlacklist.add("java/util/concurrent/atomic/AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
+        clinitBlacklist.add("java/lang/Exception");
+        clinitBlacklist.add("java/lang/IllegalArgumentException");
+        clinitBlacklist.add("java/lang/RuntimeException");
+        clinitBlacklist.add("java/lang/Throwable");
 
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
@@ -144,12 +157,14 @@ public class VirtualMachine {
         }
         classMap.put(classFile.getThisClassName(), value);
 
-        MethodInfo.Descriptor clinitType = ClassFileParser.DescriptorParser.parseMethod("()V");
-        try {
-            MethodSearchResult result = searchMethod(value, "<clinit>", clinitType);
-            executeMethod(result.klass, result.method, new Value[0]);
-        } catch (NoMethodException e) {
-            // ignore undefined <clinit>:()V call
+        if (!clinitBlacklist.contains(classFile.getThisClassName())) { // <clinit> of these classes are buggy now
+            MethodInfo.Descriptor clinitType = ClassFileParser.DescriptorParser.parseMethod("()V");
+            try {
+                MethodSearchResult result = searchMethod(value, "<clinit>", clinitType);
+                executeMethod(result.klass, result.method, new Value[0]);
+            } catch (NoMethodException e) {
+                // ignore undefined <clinit>:()V call
+            }
         }
         return value;
     }
@@ -199,10 +214,10 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
-        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
+        String className = klass.getClassFile().getThisClassName();
+        //System.out.println(className + "." + method.getName());
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             // TODO: Carve out this logic
-            String className = klass.getClassFile().getThisClassName();
             if (className.equals("java/lang/System") && method.getName().equals("arraycopy")) {
                 System.arraycopy(args[0].getValue(), (Integer) args[1].getValue(),
                         args[2].getValue(), (Integer) args[3].getValue(), (Integer) args[4].getValue());
@@ -211,7 +226,8 @@ public class VirtualMachine {
                 if (className.equals("java/lang/System")
                         || className.equals("java/lang/Object")
                         || className.equals("java/lang/Class")
-                        || className.equals("java/lang/ClassLoader")) {
+                        || className.equals("java/lang/ClassLoader")
+                        || className.equals("sun/misc/Unsafe")) {
                     // nothing registered for now
                 } else {
                     throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
@@ -220,8 +236,8 @@ public class VirtualMachine {
             } else if (className.equals("java/lang/System") && method.getName().equals("initProperties")) {
                 // not implemented properly yet. FIXME: implement something
                 return Value.Null();
-            } else if (className.equals("sun/misc/VM") && method.getName().equals("initialize")) {
-                // not implemented properly yet. FIXME: implement something
+            } else if (className.equals("java/lang/System") && method.getName().equals("setIn0")) {
+                klass.setField("in", args[0]);
                 return null;
             } else if (className.equals("java/lang/Class") && method.getName().equals("desiredAssertionStatus0")) {
                 // not implemented properly yet. FIXME: Is it okay?
@@ -241,10 +257,40 @@ public class VirtualMachine {
             } else if (className.equals("java/lang/Double") && method.getName().equals("longBitsToDouble")) {
                 double result = Double.longBitsToDouble((Long)args[0].getValue());
                 return new Value(new FieldType.Double(), result);
+            } else if (className.equals("java/lang/Object") && method.getName().equals("hashCode")) {
+                return new Value(new FieldType.Int(), args[0].getValue().hashCode());
+            } else if ((className.equals("java/io/FileInputStream")
+                    || className.equals("java/io/FileOutputStream")
+                    || className.equals("java/io/FileDescriptor")) && method.getName().equals("initIDs")) {
+                // not implemented properly yet. FIXME: what does it actually do?
+                return null;
+            } else if (className.equals("sun/misc/VM") && method.getName().equals("initialize")) {
+                // not implemented properly yet. FIXME: implement something
+                return null;
             } else {
                 throw new RuntimeException("Unsupported native method: " + klass.getClassFile().getThisClassName() + "." + method.getName());
             }
         }
+
+        // Stub properties until initProperties is implemented properly.
+        if (className.equals("sun/misc/VM") && method.getName().equals("saveAndRemoveProperties")) {
+            return null;
+        } else if (className.equals("java/util/Properties") && method.getName().equals("getProperty")) {
+            String property = String.valueOf((char[])((Value.Object)args[1].getValue()).getField("value").getValue());
+            if (property.equals("sun.stdout.encoding") || property.equals("sun.stderr.encoding")) { // how can we get it properly?
+                return new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object("UTF-8"));
+            } else {
+                return new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(System.getProperty(property)));
+            }
+        } else if (className.equals("java/util/Properties") && method.getName().equals("setProperty")) {
+            return args[1];
+        }
+
+        // Stub AtomicReferenceFieldUpdater. It's not working now.
+        if (className.equals("java/util/concurrent/atomic/AtomicReferenceFieldUpdater") && method.getName().equals("newUpdater")) {
+            return new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
+        }
+
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
         return new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
     }
