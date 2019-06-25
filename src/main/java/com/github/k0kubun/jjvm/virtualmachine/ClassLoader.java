@@ -14,11 +14,11 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ClassLoader {
+class ClassLoader {
     private final Map<String, String> jarByClass;
     private final List<String> classPaths;
 
-    public ClassLoader(String classPath) {
+    ClassLoader(String classPath) {
         jarByClass = new HashMap<>();
         setupBootstrapSearchPath(jarByClass);
 
