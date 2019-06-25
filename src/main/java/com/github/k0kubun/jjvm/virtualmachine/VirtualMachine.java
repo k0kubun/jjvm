@@ -214,33 +214,51 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
-        String className = klass.getClassFile().getThisClassName();
-        //System.out.println(className + "." + method.getName());
+        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             return NativeMethod.dispatch(klass, method, args);
         }
 
-        // Stub properties until initProperties is implemented properly.
-        if (className.equals("sun/misc/VM") && method.getName().equals("saveAndRemoveProperties")) {
-            return null;
-        } else if (className.equals("java/util/Properties") && method.getName().equals("getProperty")) {
-            String property = String.valueOf((char[])((Value.Object)args[1].getValue()).getField("value").getValue());
-            if (property.equals("sun.stdout.encoding") || property.equals("sun.stderr.encoding")) { // how can we get it properly?
-                return new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object("UTF-8"));
-            } else {
-                return new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(System.getProperty(property)));
-            }
-        } else if (className.equals("java/util/Properties") && method.getName().equals("setProperty")) {
-            return args[1];
-        }
-
-        // Stub AtomicReferenceFieldUpdater. It's not working now.
-        if (className.equals("java/util/concurrent/atomic/AtomicReferenceFieldUpdater") && method.getName().equals("newUpdater")) {
-            return new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
+        MethodStubResult result = dispatchStubMethod(klass, method, args);
+        if (result.isStub) {
+            return result.value;
         }
 
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
         return new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
+    }
+
+    // Temporary measures... FIXME: This method should go away
+    private MethodStubResult dispatchStubMethod(Value.Class klass, MethodInfo method, Value[] args) {
+        String className = klass.getClassFile().getThisClassName();
+        Value value = Value.Null();
+        boolean isStub = true;
+
+        // Stub properties until initProperties is implemented properly.
+        if (className.equals("sun/misc/VM") && method.getName().equals("saveAndRemoveProperties")) {
+            value = null;
+        }
+        else if (className.equals("java/util/Properties") && method.getName().equals("getProperty")) {
+            String property = String.valueOf((char[])((Value.Object)args[1].getValue()).getField("value").getValue());
+            if (property.equals("sun.stdout.encoding") || property.equals("sun.stderr.encoding")) { // how can we get it properly?
+                value = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object("UTF-8"));
+            } else {
+                value = new Value(new FieldType.ObjectType("java/lang/String"), new Value.Object(System.getProperty(property)));
+            }
+        }
+        else if (className.equals("java/util/Properties") && method.getName().equals("setProperty")) {
+            value = args[1];
+        }
+
+        // Stub AtomicReferenceFieldUpdater. It's not working now.
+        else if (className.equals("java/util/concurrent/atomic/AtomicReferenceFieldUpdater") && method.getName().equals("newUpdater")) {
+            value = new Value(new FieldType.ObjectType("java/util/concurrent/atomic/AtomicReferenceFieldUpdater"), new Value.Object());
+        }
+
+        else {
+            isStub = false;
+        }
+        return new MethodStubResult(isStub, value);
     }
 
     private static class NoMethodException extends RuntimeException {
@@ -256,6 +274,16 @@ public class VirtualMachine {
         public MethodSearchResult(Value.Class klass, MethodInfo method) {
             this.klass = klass;
             this.method = method;
+        }
+    }
+
+    private static class MethodStubResult {
+        final boolean isStub;
+        final Value value;
+
+        public MethodStubResult(boolean isStub, Value value) {
+            this.isStub = isStub;
+            this.value = value;
         }
     }
 }
