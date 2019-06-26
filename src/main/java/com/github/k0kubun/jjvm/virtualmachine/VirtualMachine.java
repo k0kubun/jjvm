@@ -30,18 +30,8 @@ public class VirtualMachine {
         callDepth = 0;
         traceCall = trace;
 
-        // stub: <clinit> of these classes are buggy now
         clinitBlacklist = new HashSet<>();
-        clinitBlacklist.add("java/lang/Exception");
-        clinitBlacklist.add("java/lang/IllegalArgumentException");
-        clinitBlacklist.add("java/lang/RuntimeException");
-        clinitBlacklist.add("java/lang/Throwable");
-        clinitBlacklist.add("java/nio/Bits");
-        clinitBlacklist.add("java/util/concurrent/atomic/AtomicInteger");
-        clinitBlacklist.add("java/util/concurrent/atomic/AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
-        clinitBlacklist.add("sun/misc/SharedSecrets");
-        clinitBlacklist.add("sun/misc/Unsafe");
-        clinitBlacklist.add("sun/reflect/Reflection");
+        initializeClinitBlacklist();
 
         // initializeClass("java/lang/String");
         initializeClass("java/lang/System");
@@ -172,12 +162,29 @@ public class VirtualMachine {
             MethodInfo.Descriptor clinitType = ClassFileParser.DescriptorParser.parseMethod("()V");
             try {
                 MethodSearchResult result = searchMethod(value, "<clinit>", clinitType);
-                executeMethod(result.klass, result.method, new Value[0]);
+                String methodClass = result.klass.getClassFile().getThisClassName();
+                if (methodClass.equals(klass) || !classMap.containsKey(methodClass)) { // avoid duplicated clinit by inheritance
+                    executeMethod(result.klass, result.method, new Value[0]);
+                }
             } catch (NoMethodException e) {
                 // ignore undefined <clinit>:()V call
             }
         }
         return value;
+    }
+
+    // stub: <clinit> of these classes are buggy now
+    private void initializeClinitBlacklist() {
+        clinitBlacklist.add("java/lang/Exception");
+        clinitBlacklist.add("java/lang/IllegalArgumentException");
+        clinitBlacklist.add("java/lang/RuntimeException");
+        clinitBlacklist.add("java/lang/Throwable");
+        clinitBlacklist.add("java/nio/Bits");
+        clinitBlacklist.add("java/util/concurrent/atomic/AtomicInteger");
+        clinitBlacklist.add("java/util/concurrent/atomic/AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
+        clinitBlacklist.add("sun/misc/SharedSecrets");
+        clinitBlacklist.add("sun/misc/Unsafe");
+        clinitBlacklist.add("sun/reflect/Reflection");
     }
 
     // Get or load a class from FieldType
