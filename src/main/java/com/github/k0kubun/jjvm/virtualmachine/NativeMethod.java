@@ -27,15 +27,15 @@ class NativeMethod {
             return null;
         } else if (className.equals("java/lang/Float") && method.getName().equals("floatToRawIntBits")) {
             int result = Float.floatToRawIntBits((Float)args[0].getValue());
-            return new Value(new FieldType.Int(), result);
+            return new Value(FieldType.INT, result);
         } else if (className.equals("java/lang/Double") && method.getName().equals("doubleToRawLongBits")) {
             long result = Double.doubleToRawLongBits((Double)args[0].getValue());
-            return new Value(new FieldType.Long(), result);
+            return new Value(FieldType.LONG, result);
         } else if (className.equals("java/lang/Double") && method.getName().equals("longBitsToDouble")) {
             double result = Double.longBitsToDouble((Long)args[0].getValue());
-            return new Value(new FieldType.Double(), result);
+            return new Value(FieldType.DOUBLE, result);
         } else if (className.equals("java/lang/Object") && method.getName().equals("hashCode")) {
-            return new Value(new FieldType.Int(), args[0].getValue().hashCode());
+            return new Value(FieldType.INT, args[0].getValue().hashCode());
         }
         // === broken things from here ===
         else if (method.getName().equals("registerNatives")) {
@@ -58,7 +58,7 @@ class NativeMethod {
             return new Value(new FieldType.ObjectType("java/lang/Thread"), new Value.Object());
         } else if (className.equals("java/lang/Class") && method.getName().equals("desiredAssertionStatus0")) {
             // not implemented properly yet. FIXME: Is it okay?
-            return new Value(new FieldType.Boolean(), true);
+            return new Value(FieldType.BOOLEAN, true);
         } else if (className.equals("java/lang/Class") && method.getName().equals("getPrimitiveClass")) {
             // not implemented properly yet. FIXME: implement something
             return Value.Null();

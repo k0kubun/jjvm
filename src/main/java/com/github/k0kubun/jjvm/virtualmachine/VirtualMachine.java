@@ -94,17 +94,17 @@ public class VirtualMachine {
     private Value defaultValueOfType(FieldType fieldType) {
         // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.3
         if (fieldType instanceof FieldType.Int) {
-            return new Value(new FieldType.Int(), 0);
+            return new Value(FieldType.INT, 0);
         } else if (fieldType instanceof FieldType.Long) {
-            return new Value(new FieldType.Long(), 0L);
+            return new Value(FieldType.LONG, 0L);
         } else if (fieldType instanceof FieldType.Char) {
-            return new Value(new FieldType.Char(), '\u0000');
+            return new Value(FieldType.CHAR, '\u0000');
         } else if (fieldType instanceof FieldType.Float) {
-            return new Value(new FieldType.Double(), +0.0F);
+            return new Value(FieldType.DOUBLE, +0.0F);
         } else if (fieldType instanceof FieldType.Double) {
-            return new Value(new FieldType.Double(), +0.0D);
+            return new Value(FieldType.DOUBLE, +0.0D);
         } else if (fieldType instanceof FieldType.Boolean) {
-            return new Value(new FieldType.Boolean(), false);
+            return new Value(FieldType.BOOLEAN, false);
         } else if (fieldType instanceof FieldType.ArrayType || fieldType instanceof FieldType.ObjectType) {
             return Value.Null();
         } else {

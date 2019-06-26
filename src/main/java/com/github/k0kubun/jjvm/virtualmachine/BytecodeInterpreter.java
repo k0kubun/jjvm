@@ -45,52 +45,52 @@ public class BytecodeInterpreter {
                     stack.push(Value.Null());
                     break;
                 case Iconst_M1:
-                    stack.push(new Value(new FieldType.Int(), -1));
+                    stack.push(new Value(FieldType.INT, -1));
                     break;
                 case Iconst_0:
-                    stack.push(new Value(new FieldType.Int(), 0));
+                    stack.push(new Value(FieldType.INT, 0));
                     break;
                 case Iconst_1:
-                    stack.push(new Value(new FieldType.Int(), 1));
+                    stack.push(new Value(FieldType.INT, 1));
                     break;
                 case Iconst_2:
-                    stack.push(new Value(new FieldType.Int(), 2));
+                    stack.push(new Value(FieldType.INT, 2));
                     break;
                 case Iconst_3:
-                    stack.push(new Value(new FieldType.Int(), 3));
+                    stack.push(new Value(FieldType.INT, 3));
                     break;
                 case Iconst_4:
-                    stack.push(new Value(new FieldType.Int(), 4));
+                    stack.push(new Value(FieldType.INT, 4));
                     break;
                 case Iconst_5:
-                    stack.push(new Value(new FieldType.Int(), 5));
+                    stack.push(new Value(FieldType.INT, 5));
                     break;
                 case Lconst_0:
-                    stack.push(new Value(new FieldType.Long(), 0L));
+                    stack.push(new Value(FieldType.LONG, 0L));
                     break;
                 case Lconst_1:
-                    stack.push(new Value(new FieldType.Long(), 1L));
+                    stack.push(new Value(FieldType.LONG, 1L));
                     break;
                 case Fconst_0:
-                    stack.push(new Value(new FieldType.Float(), 0F));
+                    stack.push(new Value(FieldType.FLOAT, 0F));
                     break;
                 case Fconst_1:
-                    stack.push(new Value(new FieldType.Float(), 1F));
+                    stack.push(new Value(FieldType.FLOAT, 1F));
                     break;
                 case Fconst_2:
-                    stack.push(new Value(new FieldType.Float(), 2F));
+                    stack.push(new Value(FieldType.FLOAT, 2F));
                     break;
                 case Dconst_0:
-                    stack.push(new Value(new FieldType.Double(), 0D));
+                    stack.push(new Value(FieldType.DOUBLE, 0D));
                     break;
                 case Dconst_1:
-                    stack.push(new Value(new FieldType.Double(), 1D));
+                    stack.push(new Value(FieldType.DOUBLE, 1D));
                     break;
                 case Bipush:
-                    stack.push(new Value(new FieldType.Int(), (int)instruction.getOperands()[0]));
+                    stack.push(new Value(FieldType.INT, (int)instruction.getOperands()[0]));
                     break;
                 case Sipush:
-                    stack.push(new Value(new FieldType.Short(), (short)instruction.getIndex()));
+                    stack.push(new Value(FieldType.SHORT, (short)instruction.getIndex()));
                     break;
                 case Ldc:
                 case Ldc_W:
@@ -99,9 +99,9 @@ public class BytecodeInterpreter {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/String;");
                         stack.push(new Value(type, new Value.Object(((ConstantInfo.String)constValue).getString())));
                     } else if (constValue instanceof ConstantInfo.Integer) {
-                        stack.push(new Value(new FieldType.Int(), ((ConstantInfo.Integer)constValue).getValue()));
+                        stack.push(new Value(FieldType.INT, ((ConstantInfo.Integer)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Float) {
-                        stack.push(new Value(new FieldType.Float(), ((ConstantInfo.Float)constValue).getValue()));
+                        stack.push(new Value(FieldType.FLOAT, ((ConstantInfo.Float)constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Class) {
                         FieldType type = DescriptorParser.parseField("Ljava/lang/Class;");
                         String name = ((ConstantInfo.Class)constValue).getName();
@@ -117,9 +117,9 @@ public class BytecodeInterpreter {
                 case Ldc2_W:
                     constValue = getConstant(instruction.getIndex());
                     if (constValue instanceof ConstantInfo.Long) {
-                        stack.push(new Value(new FieldType.Long(), ((ConstantInfo.Long) constValue).getValue()));
+                        stack.push(new Value(FieldType.LONG, ((ConstantInfo.Long) constValue).getValue()));
                     } else if (constValue instanceof ConstantInfo.Double) {
-                        stack.push(new Value(new FieldType.Double(), ((ConstantInfo.Double)constValue).getValue()));
+                        stack.push(new Value(FieldType.DOUBLE, ((ConstantInfo.Double)constValue).getValue()));
                     } else {
                         throw new RuntimeException("Unexpected ConstantType in ldc2_w: " + constValue);
                     }
@@ -264,170 +264,170 @@ public class BytecodeInterpreter {
                 // case Swap:
                 case Iadd:
                     int[] ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] + ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] + ints[1]));
                     break;
                 case Ladd:
                     long[] longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] + longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] + longs[1]));
                     break;
                 case Fadd:
                     float[] floats = popFloats(2);
-                    stack.push(new Value(new FieldType.Float(), floats[0] + floats[1]));
+                    stack.push(new Value(FieldType.FLOAT, floats[0] + floats[1]));
                     break;
                 case Dadd:
                     double[] doubles = popDoubles(2);
-                    stack.push(new Value(new FieldType.Double(), doubles[0] + doubles[1]));
+                    stack.push(new Value(FieldType.DOUBLE, doubles[0] + doubles[1]));
                     break;
                 case Isub:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] - ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] - ints[1]));
                     break;
                 case Lsub:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] - longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] - longs[1]));
                     break;
                 case Fsub:
                     floats = popFloats(2);
-                    stack.push(new Value(new FieldType.Float(), floats[0] - floats[1]));
+                    stack.push(new Value(FieldType.FLOAT, floats[0] - floats[1]));
                     break;
                 case Dsub:
                     doubles = popDoubles(2);
-                    stack.push(new Value(new FieldType.Double(), doubles[0] - doubles[1]));
+                    stack.push(new Value(FieldType.DOUBLE, doubles[0] - doubles[1]));
                     break;
                 case Imul:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] * ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] * ints[1]));
                     break;
                 case Lmul:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] * longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] * longs[1]));
                     break;
                 case Fmul:
                     floats = popFloats(2);
-                    stack.push(new Value(new FieldType.Float(), floats[0] * floats[1]));
+                    stack.push(new Value(FieldType.FLOAT, floats[0] * floats[1]));
                     break;
                 case Dmul:
                     doubles = popDoubles(2);
-                    stack.push(new Value(new FieldType.Double(), doubles[0] * doubles[1]));
+                    stack.push(new Value(FieldType.DOUBLE, doubles[0] * doubles[1]));
                     break;
                 case Idiv:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] / ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] / ints[1]));
                     break;
                 case Ldiv:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] / longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] / longs[1]));
                     break;
                 case Fdiv:
                     floats = popFloats(2);
-                    stack.push(new Value(new FieldType.Float(), floats[0] / floats[1]));
+                    stack.push(new Value(FieldType.FLOAT, floats[0] / floats[1]));
                     break;
                 case Ddiv:
                     doubles = popDoubles(2);
-                    stack.push(new Value(new FieldType.Double(), doubles[0] / doubles[1]));
+                    stack.push(new Value(FieldType.DOUBLE, doubles[0] / doubles[1]));
                     break;
                 case Irem:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] % ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] % ints[1]));
                     break;
                 case Lrem:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] % longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] % longs[1]));
                     break;
                 case Frem:
                     floats = popFloats(2);
-                    stack.push(new Value(new FieldType.Float(), floats[0] % floats[1]));
+                    stack.push(new Value(FieldType.FLOAT, floats[0] % floats[1]));
                     break;
                 case Drem:
                     doubles = popDoubles(2);
-                    stack.push(new Value(new FieldType.Double(), doubles[0] % doubles[1]));
+                    stack.push(new Value(FieldType.DOUBLE, doubles[0] % doubles[1]));
                     break;
                 case Ineg:
-                    stack.push(new Value(new FieldType.Int(), -((int)stack.pop().getValue())));
+                    stack.push(new Value(FieldType.INT, -((int)stack.pop().getValue())));
                     break;
                 case Lneg:
-                    stack.push(new Value(new FieldType.Long(), -((long)stack.pop().getValue())));
+                    stack.push(new Value(FieldType.LONG, -((long)stack.pop().getValue())));
                     break;
                 case Fneg:
-                    stack.push(new Value(new FieldType.Float(), -((float)stack.pop().getValue())));
+                    stack.push(new Value(FieldType.FLOAT, -((float)stack.pop().getValue())));
                     break;
                 case Dneg:
-                    stack.push(new Value(new FieldType.Double(), -((double)stack.pop().getValue())));
+                    stack.push(new Value(FieldType.DOUBLE, -((double)stack.pop().getValue())));
                     break;
                 case Ishl:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] << ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] << ints[1]));
                     break;
                 case Lshl:
                     int intv = (Integer)stack.pop().getValue();
                     long longv = (Long)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Long(), longv << intv));
+                    stack.push(new Value(FieldType.LONG, longv << intv));
                     break;
                 case Ishr:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] >> ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] >> ints[1]));
                     break;
                 case Lshr:
                     intv = (Integer)stack.pop().getValue();
                     longv = (Long)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Long(), longv >> intv));
+                    stack.push(new Value(FieldType.LONG, longv >> intv));
                     break;
                 case Iushr:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] >>> ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] >>> ints[1]));
                     break;
                 case Lushr:
                     intv = (Integer)stack.pop().getValue();
                     longv = (Long)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Long(), longv >>> intv));
+                    stack.push(new Value(FieldType.LONG, longv >>> intv));
                     break;
                 case Iand:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] & ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] & ints[1]));
                     break;
                 case Land:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] & longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] & longs[1]));
                     break;
                 case Ior:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] | ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] | ints[1]));
                     break;
                 case Lor:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] | longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] | longs[1]));
                     break;
                 case Ixor:
                     ints = popInts(2);
-                    stack.push(new Value(new FieldType.Int(), ints[0] ^ ints[1]));
+                    stack.push(new Value(FieldType.INT, ints[0] ^ ints[1]));
                     break;
                 case Lxor:
                     longs = popLongs(2);
-                    stack.push(new Value(new FieldType.Long(), longs[0] ^ longs[1]));
+                    stack.push(new Value(FieldType.LONG, longs[0] ^ longs[1]));
                     break;
                 case Iinc:
                     intv = (Integer)locals[instruction.getOperands()[0]].getValue();
                     locals[instruction.getOperands()[0]] =
-                            new Value(new FieldType.Int(), intv + instruction.getOperands()[1]);
+                            new Value(FieldType.INT, intv + instruction.getOperands()[1]);
                     break;
                 case I2l:
                     intv = (Integer)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Long(), (long)intv));
+                    stack.push(new Value(FieldType.LONG, (long)intv));
                     break;
                 case I2f:
                     intv = (Integer)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Float(), (float)intv));
+                    stack.push(new Value(FieldType.FLOAT, (float)intv));
                     break;
                 // case I2d:
                 case L2i:
                     longv = (Long)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Int(), (int)longv));
+                    stack.push(new Value(FieldType.INT, (int)longv));
                     break;
                 // case L2f:
                 // case L2d:
                 case F2i:
                     float floatv = (Float)stack.pop().getValue();
-                    stack.push(new Value(new FieldType.Int(), (int)floatv));
+                    stack.push(new Value(FieldType.INT, (int)floatv));
                     break;
                 // case F2l:
                 // case F2d:
@@ -441,33 +441,33 @@ public class BytecodeInterpreter {
                     // TODO: test this instruction
                     longs = popLongs(2);
                     if (longs[0] < longs[1]) {
-                        stack.push(new Value(new FieldType.Int(), 1));
+                        stack.push(new Value(FieldType.INT, 1));
                     } else if (longs[0] == longs[1]) {
-                        stack.push(new Value(new FieldType.Int(), 0));
+                        stack.push(new Value(FieldType.INT, 0));
                     } else {
-                        stack.push(new Value(new FieldType.Int(), -1));
+                        stack.push(new Value(FieldType.INT, -1));
                     }
                     break;
                 case Fcmpl:
                     // TODO: test this instruction
                     floats = popFloats(2);
                     if (floats[0] < floats[1]) {
-                        stack.push(new Value(new FieldType.Int(), 1));
+                        stack.push(new Value(FieldType.INT, 1));
                     } else if (floats[0] == floats[1]) {
-                        stack.push(new Value(new FieldType.Int(), 0));
+                        stack.push(new Value(FieldType.INT, 0));
                     } else {
-                        stack.push(new Value(new FieldType.Int(), -1));
+                        stack.push(new Value(FieldType.INT, -1));
                     }
                     break;
                 case Fcmpg:
                     // TODO: test this instruction
                     floats = popFloats(2);
                     if (floats[0] == floats[1]) {
-                        stack.push(new Value(new FieldType.Int(), 0));
+                        stack.push(new Value(FieldType.INT, 0));
                     } else if (floats[0] < floats[1]) {
-                        stack.push(new Value(new FieldType.Int(), -1));
+                        stack.push(new Value(FieldType.INT, -1));
                     } else {
-                        stack.push(new Value(new FieldType.Int(), 1));
+                        stack.push(new Value(FieldType.INT, 1));
                     }
                     break;
                 // case Dcmpl:
@@ -592,9 +592,9 @@ public class BytecodeInterpreter {
                     if (returnType instanceof FieldType.Int) {
                         return value;
                     } else if (returnType instanceof FieldType.Char) {
-                        return new Value(new FieldType.Char(), (char)intv);
+                        return new Value(FieldType.CHAR, (char)intv);
                     } else if (returnType instanceof FieldType.Boolean) {
-                        return new Value(new FieldType.Boolean(), intv == 1);
+                        return new Value(FieldType.BOOLEAN, intv == 1);
                     } else {
                         throw new RuntimeException("unexpected returnType in ireturn: " + returnType);
                     }
@@ -665,28 +665,28 @@ public class BytecodeInterpreter {
                     int size = (Integer)stack.pop().getValue();
                     switch (instruction.getOperands()[0]) {
                         case 4: // T_BOOLEAN
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Boolean()), new boolean[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.BOOLEAN), new boolean[size]));
                             break;
                         case 5: // T_CHAR
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Char()), new char[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.CHAR), new char[size]));
                             break;
                         case 6: // T_FLOAT
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Float()), new float[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.FLOAT), new float[size]));
                             break;
                         case 7: // T_DOUBLE
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Double()), new double[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.DOUBLE), new double[size]));
                             break;
                         case 8: // T_BYTE
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Byte()), new byte[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.BYTE), new byte[size]));
                             break;
                         case 9: // T_SHORT
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Short()), new short[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.SHORT), new short[size]));
                             break;
                         case 10: // T_INT
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Int()), new int[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.INT), new int[size]));
                             break;
                         case 11: // T_LONG
-                            stack.push(new Value(new FieldType.ArrayType(new FieldType.Long()), new long[size]));
+                            stack.push(new Value(new FieldType.ArrayType(FieldType.LONG), new long[size]));
                             break;
                         default:
                             throw new RuntimeException(String.format("unexpected tag is given with newarray: %d", instruction.getOperands()[0]));
@@ -701,7 +701,7 @@ public class BytecodeInterpreter {
                     break;
                 case Arraylength:
                     receiver = stack.pop();
-                    stack.push(new Value(new FieldType.Int(), getArrayLength(receiver)));
+                    stack.push(new Value(FieldType.INT, getArrayLength(receiver)));
                     break;
                 // case Athrow:
                 case Checkcast:
@@ -726,7 +726,7 @@ public class BytecodeInterpreter {
                         receiver = stack.pop();
                         className = ((ConstantInfo.Class)constValue).getName();
                         if (receiver.getType().getType().equals(className.replace('/', '.'))) {
-                            stack.push(new Value(new FieldType.Int(), 1));
+                            stack.push(new Value(FieldType.INT, 1));
                         } else {
                             throw new RuntimeException("This path of instanceof is not implemented yet");
                         }

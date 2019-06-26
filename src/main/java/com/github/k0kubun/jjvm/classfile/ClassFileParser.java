@@ -626,21 +626,21 @@ public class ClassFileParser {
             char c = scanner.nextChar();
             switch (c) {
                 case 'B':
-                    return new FieldType.Byte();
+                    return FieldType.BYTE;
                 case 'C':
-                    return new FieldType.Char();
+                    return FieldType.CHAR;
                 case 'D':
-                    return new FieldType.Double();
+                    return FieldType.DOUBLE;
                 case 'F':
-                    return new FieldType.Float();
+                    return FieldType.FLOAT;
                 case 'I':
-                    return new FieldType.Int();
+                    return FieldType.INT;
                 case 'J':
-                    return new FieldType.Long();
+                    return FieldType.LONG;
                 case 'S':
-                    return new FieldType.Short();
+                    return FieldType.SHORT;
                 case 'Z':
-                    return new FieldType.Boolean();
+                    return FieldType.BOOLEAN;
                 case 'L':
                     String className = scanner.scanUntil(';');
                     return new FieldType.ObjectType(className.substring(0, className.length() - 1));

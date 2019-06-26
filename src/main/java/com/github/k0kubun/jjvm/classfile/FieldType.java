@@ -19,54 +19,62 @@ public class FieldType implements MethodInfo.ReturnDescriptor {
     // J	long	long integer
     // S	short	signed short
     // Z	boolean	true or false
-    public static class BaseType extends FieldType {
+    static class BaseType extends FieldType {
         BaseType(String type) {
             super(type);
         }
     }
 
+    public static final Byte BYTE = new Byte();
     public static class Byte extends BaseType {
         public Byte() {
             super("byte");
         }
     }
 
+    public static final Char CHAR = new Char();
     public static class Char extends BaseType {
         public Char() {
             super("char");
         }
     }
 
+    public static final Double DOUBLE = new Double();
     public static class Double extends BaseType {
         public Double() {
             super("double");
         }
     }
 
+    public static final Float FLOAT = new Float();
     public static class Float extends BaseType {
         public Float() {
             super("float");
         }
     }
 
+    public static final Int INT = new Int();
     public static class Int extends BaseType {
         public Int() {
             super("int");
         }
     }
 
+    public static final Long LONG = new Long();
     public static class Long extends BaseType {
         public Long() {
             super("long");
         }
     }
 
+    public static final Short SHORT = new Short();
     public static class Short extends BaseType {
         public Short() {
             super("short");
         }
     }
 
+    public static final Boolean BOOLEAN = new Boolean();
     public static class Boolean extends BaseType {
         public Boolean() {
             super("boolean");
