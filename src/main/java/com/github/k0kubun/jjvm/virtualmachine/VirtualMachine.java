@@ -19,11 +19,16 @@ public class VirtualMachine {
     private final Map<String, Value.Class> classMap;
     private final ClassLoader classLoader;
     private final Set<String> clinitBlacklist;
+    private int callDepth;
+    private final boolean traceCall;
 
     // Threads::create_vm() equivalent
-    public VirtualMachine(String classPath) {
+    public VirtualMachine(String classPath, boolean trace) {
         classMap = new HashMap<>();
         classLoader = new ClassLoader(classPath);
+
+        callDepth = 0;
+        traceCall = trace;
 
         // stub: <clinit> of these classes are buggy now
         clinitBlacklist = new HashSet<>();
@@ -218,7 +223,12 @@ public class VirtualMachine {
     }
 
     private Value executeMethod(Value.Class klass, MethodInfo method, Value[] args) {
-        //System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
+        if (traceCall) {
+            for (int i = 0; i < callDepth; i++)
+                System.out.print("  ");
+            System.out.println(klass.getClassFile().getThisClassName() + "." + method.getName());
+        }
+
         if (method.getAccessFlags().contains(MethodInfo.AccessFlag.ACC_NATIVE)) {
             return NativeMethod.dispatch(klass, method, args);
         }
@@ -228,8 +238,11 @@ public class VirtualMachine {
             return result.value;
         }
 
+        callDepth++;
         AttributeInfo.Code code = (AttributeInfo.Code)method.getAttributes().get("Code");
-        return new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
+        Value ret = new BytecodeInterpreter(this, klass).execute(code, args, method.getDescriptor().getReturn());
+        callDepth--;
+        return ret;
     }
 
     // Temporary measures... FIXME: This method should go away

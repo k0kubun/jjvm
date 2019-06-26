@@ -14,7 +14,7 @@ public class JJVM {
             System.exit(1);
         }
 
-        VirtualMachine vm = new VirtualMachine(options.getClassPath());
+        VirtualMachine vm = new VirtualMachine(options.getClassPath(), options.getTrace());
         vm.callStaticMethod(
                 options.getClassName(), "main", DescriptorParser.parseMethod("([Ljava/lang/String;)V"),
                 new Value[]{ new Value(new FieldType.ArrayType(new FieldType.ObjectType("java/lang/String")), options.getArgs()) });
@@ -35,6 +35,7 @@ public class JJVM {
     private static JJVMOptions parseOptions(String[] args) {
         String className = null;
         String classPath = ".";
+        boolean trace = false;
 
         int i;
         for (i = 0; i < args.length; i++) {
@@ -55,6 +56,8 @@ public class JJVM {
             } else if (arg.equals("-help")) {
                 printHelp();
                 System.exit(0);
+            } else if (arg.equals("-Xjjvmtrace")) {
+                trace = true;
             } else {
                 System.err.println("Unrecognized option: " + arg);
                 System.exit(1);
@@ -65,33 +68,39 @@ public class JJVM {
         if (rest.length > 0) {
             System.arraycopy(args, i, rest, 0, rest.length);
         }
-        return new JJVMOptions(className, rest, classPath);
+        return new JJVMOptions(className, rest, classPath, trace);
     }
 
     private static class JJVMOptions {
         private final String className;
         private final Value.Object[] args;
         private final String classPath;
+        private final boolean trace;
 
-        public JJVMOptions(String className, String[] args, String classPath) {
+        JJVMOptions(String className, String[] args, String classPath, boolean trace) {
             this.className = className;
             this.args = new Value.Object[args.length];
             for (int i = 0; i < args.length; i++) {
                 this.args[i] = new Value.Object(args[i]);
             }
             this.classPath = classPath;
+            this.trace = trace;
         }
 
-        public String getClassName() {
+        String getClassName() {
             return className.replace('.', '/');
         }
 
-        public Value.Object[] getArgs() {
+        Value.Object[] getArgs() {
             return args;
         }
 
-        public String getClassPath() {
+        String getClassPath() {
             return classPath;
+        }
+
+        boolean getTrace() {
+            return trace;
         }
     }
 }
