@@ -19,14 +19,12 @@ import java.util.Deque;
 public class BytecodeInterpreter {
     private final VirtualMachine vm;
     private final Value.Class thisClass;
-    private int pc; // program counter
     private final Deque<Value> stack;
 
     public BytecodeInterpreter(VirtualMachine vm, Value.Class klass) {
         this.vm = vm;
         this.thisClass = klass;
         this.stack = new ArrayDeque<>();
-        this.pc = 0;
     }
 
     public Value execute(AttributeInfo.Code code, Value[] methodArgs, MethodInfo.ReturnDescriptor returnType) {
@@ -35,6 +33,7 @@ public class BytecodeInterpreter {
             locals[i] = methodArgs[i];
         }
         Instruction[] instructions = code.getInstructions();
+        int pc = 0; // program counter
 
         while (true) {
             Instruction instruction = instructions[pc];
