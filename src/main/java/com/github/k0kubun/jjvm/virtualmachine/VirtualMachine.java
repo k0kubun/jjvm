@@ -100,7 +100,7 @@ public class VirtualMachine {
         } else if (fieldType instanceof FieldType.Char) {
             return new Value(FieldType.CHAR, '\u0000');
         } else if (fieldType instanceof FieldType.Float) {
-            return new Value(FieldType.DOUBLE, +0.0F);
+            return new Value(FieldType.FLOAT, +0.0F);
         } else if (fieldType instanceof FieldType.Double) {
             return new Value(FieldType.DOUBLE, +0.0D);
         } else if (fieldType instanceof FieldType.Boolean) {
