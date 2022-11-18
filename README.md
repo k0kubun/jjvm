@@ -4,7 +4,7 @@ JJVM is a _toy_ JVM implementation which is written in Java, aiming for self-hos
 
 ## Project Status
 
-Early stage of development.
+Just a toy project.
 
 * `-help` can be self-hosted, but self-hosting of interpretation is WIP.
 * Its boot is so slow for running `System.initializeSystemClass()` call.
