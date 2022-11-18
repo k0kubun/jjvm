@@ -1,4 +1,4 @@
-# JJVM [![wercker status](https://app.wercker.com/status/0582d36721f6ab149b9a34d5e3841bae/s/master "wercker status")](https://app.wercker.com/project/byKey/0582d36721f6ab149b9a34d5e3841bae)
+# JJVM
 
 JJVM is a _toy_ JVM implementation which is written in Java, aiming for self-hosting.
 
